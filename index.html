@@ -148,15 +148,13 @@
         const { useState, useEffect, useRef } = React;
 
         // --- Configurações Gerais ---
-        const MERCHANT_WHATSAPP = "5511999999999"; // <--- COLOQUE SEU NÚMERO AQUI (DDD + NÚMERO)
-
         const LIRA_CONFIG = {
             baseUrl: 'https://api.lirapaybr.com/v1',
             secret: 'sk_232bcfe54010072ee1f3606d3b1c5789b3753c52a2490c5d4a7763dcda1560e1c1336f06f88a33b27a55c028616e981d1bee7b945b10ed3332171a7c6ec89d46',
             recipientId: 'rcpt_f5424aff-468c-4fc8-96ef-cd98014af9f8'
         };
 
-        // --- Sound Effects Setup ---
+        // --- Sound Effects Setup (URLs mais confiáveis) ---
         const AUDIO_URLS = {
             click: "https://www.soundjay.com/buttons/sounds/button-16.mp3", 
             spin: "https://www.soundjay.com/mechanical/sounds/ratchet-1.mp3", 
@@ -206,7 +204,7 @@
             { id: 6, label: '?', reveal: '70% OFF', color: '#EC4899', value: 0.70 }, // Rosa
         ];
 
-        // Products
+        // Products with Images Array and Sizes
         const PRODUCTS = [
             // --- Capacetes ---
             {
@@ -218,11 +216,11 @@
                 reviews: 842,
                 image: "https://i.imgur.com/J84gKuV.png",
                 images: [
-                    "https://i.imgur.com/J84gKuV.png",
-                    "https://i.imgur.com/F5ZCCnF.png",
-                    "https://i.imgur.com/N2iYTm0.png",
-                    "https://i.imgur.com/8mD3zoi.png",
-                    "https://i.imgur.com/0jL0dPU.png"
+                    "https://i.imgur.com/J84gKuV.png", // Frontal
+                    "https://i.imgur.com/F5ZCCnF.png", // Lateral 1
+                    "https://i.imgur.com/N2iYTm0.png", // Lateral 2
+                    "https://i.imgur.com/8mD3zoi.png", // Traseira
+                    "https://i.imgur.com/0jL0dPU.png"  // Interior
                 ],
                 sizes: [56, 58, 60, 62],
                 tag: "MAIS VENDIDO",
@@ -238,9 +236,9 @@
                 reviews: 531,
                 image: "https://i.imgur.com/uB7hyLh.png",
                 images: [
-                    "https://i.imgur.com/uB7hyLh.png",
-                    "https://i.imgur.com/JL7ZIr9.png",
-                    "https://i.imgur.com/8G94QQw.png"
+                    "https://i.imgur.com/uB7hyLh.png", // Frontal
+                    "https://i.imgur.com/JL7ZIr9.png", // Lateral
+                    "https://i.imgur.com/8G94QQw.png"  // Detalhe
                 ],
                 sizes: [56, 58, 60, 62, 64],
                 tag: "LANÇAMENTO",
@@ -388,7 +386,7 @@
 
         const NOTIFICATIONS = ["Ricardo (SP) resgatou Capacete LS2", "Carlos (RJ) resgatou Kit Uniforme", "Matheus (MG) resgatou Jaqueta CR", "Felipe (PR) resgatou Power Bank", "João (BA) resgatou Bag iFood"];
 
-        // Reviews
+        // Reviews específicas por categoria
         const REVIEWS_BY_CATEGORY = {
             helmet: [
                 { name: "Marcos S.", location: "São Paulo, SP", rating: 5, text: "O capacete é original mesmo, viseira perfeita. Chegou em 2 dias.", date: "Há 1 dia" },
@@ -427,38 +425,24 @@
             </div>
         );
 
-        // --- Banner Carousel Component ---
+        // --- Banner Carousel Component (Limpo - Sem Texto Overlay) ---
         const BannerCarousel = ({ discount }) => {
             const [current, setCurrent] = useState(0);
-            const discountPercentage = Math.floor(discount * 100);
+            // discountPercentage não é mais usado aqui pois os banners são apenas imagens
+            // Se as imagens já tiverem texto, perfeito.
 
             const banners = [
                 {
                     id: 1,
-                    bg: "bg-gradient-to-r from-red-700 to-[#EA1D2C]",
                     image: "https://i.imgur.com/uyflUsv.jpeg",
-                    title: `${discountPercentage}% OFF`,
-                    subtitle: "Subsídio Parceiro",
-                    tag: "Oferta limitada por CPF",
-                    textColor: "text-white"
                 },
                 {
                     id: 2,
-                    bg: "bg-gradient-to-r from-gray-900 to-gray-800",
                     image: "https://i.imgur.com/W8SOka5.jpeg",
-                    title: "LS2 & NORISK",
-                    subtitle: "Proteção Profissional",
-                    tag: "Preço de Fábrica",
-                    textColor: "text-white"
                 },
                 {
                     id: 3,
-                    bg: "bg-gradient-to-r from-blue-800 to-blue-600",
                     image: "https://i.imgur.com/sUo5PYS.jpeg",
-                    title: "KITS IMPERMEÁVEIS",
-                    subtitle: "Chuva? Sem Problema",
-                    tag: "Alta Resistência",
-                    textColor: "text-white"
                 }
             ];
 
@@ -476,23 +460,7 @@
                             key={banner.id}
                             className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${index === current ? 'opacity-100' : 'opacity-0'}`}
                         >
-                            <div className="absolute inset-0">
-                                <img src={banner.image} className="w-full h-full object-cover" alt="Banner" />
-                                <div className={`absolute inset-0 ${banner.bg} opacity-20 mix-blend-multiply`}></div>
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-                            </div>
-
-                            <div className="relative z-10 h-full flex flex-col justify-center px-6 sm:px-10 max-w-2xl">
-                                <span className="inline-block bg-yellow-400 text-black text-[10px] sm:text-xs font-black px-2 py-1 rounded uppercase tracking-wider mb-2 w-fit shadow-sm">
-                                    {banner.subtitle}
-                                </span>
-                                <h2 className={`text-4xl sm:text-5xl font-black italic tracking-tighter leading-none drop-shadow-lg ${banner.textColor}`}>
-                                    {banner.title}
-                                </h2>
-                                <p className={`text-xs sm:text-sm font-medium mt-2 inline-block px-3 py-1 rounded bg-white/20 backdrop-blur-sm w-fit ${banner.textColor}`}>
-                                    {banner.tag}
-                                </p>
-                            </div>
+                            <img src={banner.image} className="w-full h-full object-cover" alt="Banner" />
                         </div>
                     ))}
 
@@ -1145,8 +1113,7 @@
                             <span onClick={() => { playSound('click'); setActiveCategory('all'); }} className="text-xs text-[#EA1D2C] font-bold flex items-center cursor-pointer">Ver tudo<svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 ml-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg></span>
                         </div>
 
-                        {/* Grid ajustado para ser mais compacto */}
-                        <div className="grid grid-cols-2 gap-1.5 pb-8">
+                        <div className="grid grid-cols-2 gap-2 pb-8">
                             {filteredProducts.length > 0 ? (
                                 filteredProducts.map(product => {
                                     const price = calculatePrice(product.originalPrice);
@@ -1155,46 +1122,39 @@
 
                                     return (
                                         <div key={product.id} className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden flex flex-col transform transition-transform hover:-translate-y-1 animate-bounce-in">
-                                            {/* Padding reduzido na imagem */}
-                                            <div className="relative aspect-square bg-white p-1">
+                                            <div className="relative aspect-square bg-white p-2">
                                                 <img src={product.image} alt={product.name} className="w-full h-full object-contain mix-blend-multiply" />
-                                                <div className="absolute top-1 right-1 bg-[#EA1D2C] text-white text-[8px] font-extrabold px-1 py-0.5 rounded shadow-sm">-{Math.floor(discount * 100)}%</div>
-                                                <div className="absolute bottom-1 left-1 bg-gray-900/80 text-white text-[7px] font-bold px-1 py-0.5 rounded backdrop-blur-sm">{product.tag}</div>
+                                                <div className="absolute top-2 right-2 bg-[#EA1D2C] text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded shadow-sm">-{Math.floor(discount * 100)}%</div>
+                                                <div className="absolute bottom-2 left-2 bg-gray-900/80 text-white text-[8px] font-bold px-1.5 py-0.5 rounded backdrop-blur-sm">{product.tag}</div>
                                             </div>
-                                            
-                                            {/* Conteúdo mais compacto */}
-                                            <div className="p-1.5 flex-1 flex flex-col justify-between border-t border-gray-50 bg-gray-50/50">
+                                            <div className="p-2 flex-1 flex flex-col justify-between border-t border-gray-50 bg-gray-50/50">
                                                 <div>
-                                                    <h3 className="text-[10px] text-gray-800 font-bold leading-tight mb-0.5 line-clamp-2 h-[2.4em]">{product.name}</h3>
-                                                    
-                                                    <div className="flex items-center gap-0.5 mb-1">
-                                                        <div className="flex">{[...Array(5)].map((_, i) => <svg key={i} className="w-2 h-2 text-yellow-400 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>)}</div>
-                                                        <span className="text-[8px] text-gray-400">({product.reviews})</span>
+                                                    <h3 className="text-[11px] text-gray-800 font-semibold leading-tight mb-1 line-clamp-2 h-[2.2em]">{product.name}</h3>
+                                                    <div className="flex items-center gap-1 mb-1.5">
+                                                        <div className="flex">{[...Array(5)].map((_, i) => <svg key={i} className="w-2.5 h-2.5 text-yellow-400 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>)}</div>
+                                                        <span className="text-[9px] text-gray-400">({product.reviews})</span>
                                                     </div>
-
-                                                    <div className="mb-1.5">
+                                                    <div className="mb-2">
                                                         <div className="flex justify-between items-end mb-0.5">
-                                                            <span className="text-[7px] text-gray-500 font-medium">Estoque</span>
-                                                            <span className="text-[7px] text-red-600 font-bold bg-red-50 px-1 rounded animate-pulse">Restam {product.stockLeft}</span>
+                                                            <span className="text-[8px] text-gray-500 font-medium">Estoque</span>
+                                                            <span className="text-[8px] text-red-600 font-bold bg-red-50 px-1 rounded animate-pulse">Restam {product.stockLeft}</span>
                                                         </div>
-                                                        <div className="w-full bg-gray-200 rounded-full h-0.5 overflow-hidden">
-                                                            <div className="bg-gradient-to-r from-red-500 to-red-600 h-0.5 rounded-full" style={{width: `${stockPercent}%`}}></div>
+                                                        <div className="w-full bg-gray-200 rounded-full h-1 overflow-hidden">
+                                                            <div className="bg-gradient-to-r from-red-500 to-red-600 h-1 rounded-full" style={{width: `${stockPercent}%`}}></div>
                                                         </div>
                                                     </div>
-
-                                                    <div className="flex flex-col mb-1.5">
-                                                        <span className="text-[9px] text-gray-400 line-through">R$ {product.originalPrice.toFixed(2).replace('.', ',')}</span>
+                                                    <div className="flex flex-col mb-2">
+                                                        <span className="text-[10px] text-gray-400 line-through">R$ {product.originalPrice.toFixed(2).replace('.', ',')}</span>
                                                         <div className="flex items-baseline gap-0.5 text-[#EA1D2C]">
-                                                            <span className="text-[9px] font-semibold">R$</span>
-                                                            <span className="text-base font-black leading-none tracking-tight">{int}</span>
-                                                            <span className="text-[9px] font-bold">,{dec}</span>
+                                                            <span className="text-[10px] font-semibold">R$</span>
+                                                            <span className="text-lg font-black leading-none tracking-tight">{int}</span>
+                                                            <span className="text-[10px] font-bold">,{dec}</span>
                                                         </div>
                                                     </div>
                                                 </div>
-                                                
-                                                <button onClick={() => { playSound('click'); onSelectProduct(product); }} className="w-full bg-green-600 hover:bg-green-700 active:bg-green-800 text-white text-[10px] font-bold py-2 rounded-lg shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-1 group">
+                                                <button onClick={() => { playSound('click'); onSelectProduct(product); }} className="w-full bg-green-600 hover:bg-green-700 active:bg-green-800 text-white text-xs font-bold py-2 rounded-lg shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-1 group">
                                                     RESGATAR
-                                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-2.5 w-2.5 group-active:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 group-active:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
                                                 </button>
                                             </div>
                                         </div>
