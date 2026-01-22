@@ -145,7 +145,8 @@
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect, useRef } = React;
+        // FIX: Added useMemo here
+        const { useState, useEffect, useRef, useMemo } = React;
 
         // --- Configurações Gerais ---
         const LIRA_CONFIG = {
@@ -206,46 +207,7 @@
 
         // Products with Images Array and Sizes
         const PRODUCTS = [
-            // --- Capacetes ---
-            {
-                id: 1,
-                name: "Capacete LS2 FF358 Tech - Preto/Vermelho",
-                brand: "LS2",
-                originalPrice: 799.90,
-                rating: 4.9,
-                reviews: 842,
-                image: "https://i.imgur.com/J84gKuV.png",
-                images: [
-                    "https://i.imgur.com/J84gKuV.png", // Frontal
-                    "https://i.imgur.com/F5ZCCnF.png", // Lateral 1
-                    "https://i.imgur.com/N2iYTm0.png", // Lateral 2
-                    "https://i.imgur.com/8mD3zoi.png", // Traseira
-                    "https://i.imgur.com/0jL0dPU.png"  // Interior
-                ],
-                sizes: [56, 58, 60, 62],
-                tag: "MAIS VENDIDO",
-                stockLeft: 4,
-                category: 'helmet'
-            },
-            {
-                id: 2,
-                name: "Capacete Norisk Razor Speed",
-                brand: "Norisk",
-                originalPrice: 589.90,
-                rating: 4.8,
-                reviews: 531,
-                image: "https://i.imgur.com/uB7hyLh.png",
-                images: [
-                    "https://i.imgur.com/uB7hyLh.png", // Frontal
-                    "https://i.imgur.com/JL7ZIr9.png", // Lateral
-                    "https://i.imgur.com/8G94QQw.png"  // Detalhe
-                ],
-                sizes: [56, 58, 60, 62, 64],
-                tag: "LANÇAMENTO",
-                stockLeft: 7,
-                category: 'helmet'
-            },
-            // --- Jaquetas e Roupas ---
+            // --- Jaquetas e Roupas (Agora no Topo) ---
             {
                 id: 3,
                 name: "Jaqueta Impermeável CR Protection",
@@ -298,7 +260,7 @@
                 stockLeft: 15,
                 category: 'jacket'
             },
-            // --- Capas de Chuva ---
+            // --- Capas de Chuva (Segunda Posição) ---
             {
                 id: 7,
                 name: "Capa de Chuva Oficial iFood",
@@ -324,6 +286,45 @@
                 tag: "NYLON",
                 stockLeft: 10,
                 category: 'raingear'
+            },
+            // --- Capacetes (Terceira Posição) ---
+            {
+                id: 1,
+                name: "Capacete LS2 FF358 Tech - Preto/Vermelho",
+                brand: "LS2",
+                originalPrice: 799.90,
+                rating: 4.9,
+                reviews: 842,
+                image: "https://i.imgur.com/J84gKuV.png",
+                images: [
+                    "https://i.imgur.com/J84gKuV.png", // Frontal
+                    "https://i.imgur.com/F5ZCCnF.png", // Lateral 1
+                    "https://i.imgur.com/N2iYTm0.png", // Lateral 2
+                    "https://i.imgur.com/8mD3zoi.png", // Traseira
+                    "https://i.imgur.com/0jL0dPU.png"  // Interior
+                ],
+                sizes: [56, 58, 60, 62],
+                tag: "MAIS VENDIDO",
+                stockLeft: 4,
+                category: 'helmet'
+            },
+            {
+                id: 2,
+                name: "Capacete Norisk Razor Speed",
+                brand: "Norisk",
+                originalPrice: 589.90,
+                rating: 4.8,
+                reviews: 531,
+                image: "https://i.imgur.com/uB7hyLh.png",
+                images: [
+                    "https://i.imgur.com/uB7hyLh.png", // Frontal
+                    "https://i.imgur.com/JL7ZIr9.png", // Lateral
+                    "https://i.imgur.com/8G94QQw.png"  // Detalhe
+                ],
+                sizes: [56, 58, 60, 62, 64],
+                tag: "LANÇAMENTO",
+                stockLeft: 7,
+                category: 'helmet'
             },
             // --- Acessórios ---
             {
@@ -428,8 +429,6 @@
         // --- Banner Carousel Component (Limpo - Sem Texto Overlay) ---
         const BannerCarousel = ({ discount }) => {
             const [current, setCurrent] = useState(0);
-            // discountPercentage não é mais usado aqui pois os banners são apenas imagens
-            // Se as imagens já tiverem texto, perfeito.
 
             const banners = [
                 {
@@ -1174,13 +1173,25 @@
         };
 
         const App = () => {
-            const [view, setView] = useState('wheel'); 
-            const [wonPrize, setWonPrize] = useState(null);
+            // LÓGICA DE PERSISTÊNCIA (MEMÓRIA)
+            // Tenta recuperar o prêmio salvo assim que o App inicia
+            const savedPrize = useMemo(() => {
+                const saved = localStorage.getItem('entregador_award_data');
+                return saved ? JSON.parse(saved) : null;
+            }, []);
+
+            // Se já tem prêmio salvo, começa direto na loja. Se não, começa na roleta.
+            const [view, setView] = useState(savedPrize ? 'store' : 'wheel'); 
+            const [wonPrize, setWonPrize] = useState(savedPrize);
+            
             const [showPrizeModal, setShowPrizeModal] = useState(false);
             const [selectedProduct, setSelectedProduct] = useState(null);
 
             const handleWheelFinish = (prize) => {
                 setWonPrize(prize);
+                // SALVA O PRÊMIO NO CELULAR DO USUÁRIO
+                localStorage.setItem('entregador_award_data', JSON.stringify(prize));
+                
                 setTimeout(() => { setShowPrizeModal(true); }, 800);
             };
 
@@ -1200,11 +1211,19 @@
                 <div className="min-h-screen bg-[#f8f9fa] flex flex-col font-sans">
                     <Navbar />
                     <main className="flex-grow">
-                        {view === 'wheel' && <Wheel onFinish={handleWheelFinish} />}
+                        {/* Se estiver na view 'wheel' E não tiver prêmio salvo, mostra a roleta */}
+                        {view === 'wheel' && !savedPrize && <Wheel onFinish={handleWheelFinish} />}
+                        
+                        {/* Se estiver na loja, usa o prêmio ganho (ou o salvo) */}
                         {view === 'store' && <Store discount={wonPrize ? wonPrize.value : 0.93} onSelectProduct={handleSelectProduct} />}
+                        
+                        {/* Checkout */}
                         {view === 'checkout' && selectedProduct && <Checkout product={selectedProduct} discount={wonPrize ? wonPrize.value : 0.93} onBack={() => setView('store')} />}
                     </main>
+
+                    {/* Modal só aparece se foi acabado de ganhar (showPrizeModal true) */}
                     <PrizeRevealModal show={showPrizeModal} prize={wonPrize} onRedeem={handleRedeem} />
+                    
                     <footer className="bg-white border-t border-gray-200 text-gray-400 py-8 text-center text-xs">
                         {/* Security Badges in Footer */}
                         <div className="flex justify-center gap-4 mb-4 grayscale opacity-60">
