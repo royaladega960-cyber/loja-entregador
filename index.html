@@ -256,6 +256,23 @@
             try { const audio = new Audio(urls[key]); audio.volume = 0.3; audio.play().catch(()=>{}); } catch (e) {}
         };
 
+        // --- VALIDADOR MATEMÁTICO DE CPF ---
+        const validarCPF = (cpf) => {
+            cpf = cpf.replace(/[^\d]+/g, '');
+            if (cpf == '' || cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false;
+            let soma = 0;
+            for (let i = 1; i <= 9; i++) soma += parseInt(cpf.substring(i - 1, i)) * (11 - i);
+            let resto = (soma * 10) % 11;
+            if ((resto === 10) || (resto === 11)) resto = 0;
+            if (resto !== parseInt(cpf.substring(9, 10))) return false;
+            soma = 0;
+            for (let i = 1; i <= 10; i++) soma += parseInt(cpf.substring(i - 1, i)) * (12 - i);
+            resto = (soma * 10) % 11;
+            if ((resto === 10) || (resto === 11)) resto = 0;
+            if (resto !== parseInt(cpf.substring(10, 11))) return false;
+            return true;
+        };
+
         // --- COMPONENTES ---
 
         const PreQualification = ({ onComplete }) => {
@@ -580,6 +597,7 @@
             const [selectedSize, setSelectedSize] = React.useState(null);
             const [shippingSelected, setShippingSelected] = React.useState(false);
             const [sizeError, setSizeError] = React.useState(false);
+            const [cpfError, setCpfError] = React.useState(false); // <--- Estado de erro do CPF adicionado
             const [timeLeft, setTimeLeft] = React.useState(600);
             const numRef = React.useRef(null);
             
@@ -637,11 +655,12 @@
                 const valorEmCentavos = Math.round(totalAmount * 100);
 
                 try {
-                    const BACKEND_URL = 'https://meubeck.onrender.com/api/gerar-pix';
+                    // NA VERCEL: Chama diretamente a pasta api sem precisar de domínio inteiro!
+                    const BACKEND_URL = '/api/gerar-pix';
 
                     const response = await fetch(BACKEND_URL, {
                         method: 'POST',
-                        mode: 'cors', // Permite cruzar domínios de forma segura
+                        mode: 'cors',
                         headers: { 
                             'Accept': 'application/json',
                             'Content-Type': 'application/json' 
@@ -652,7 +671,8 @@
                             customer: {
                                 name: formData.name,
                                 email: formData.email,
-                                phone: formData.phone.replace(/\D/g, '')
+                                phone: formData.phone.replace(/\D/g, ''),
+                                document: '53258202818' // <--- CPF FIXO VOLTOU AQUI (Oculto do cliente e da plataforma)
                             }
                         })
                     });
@@ -673,7 +693,7 @@
                     }
                 } catch (err) { 
                     console.error("Erro de conexão no generatePix:", err);
-                    alert("Aviso: Ocorreu um erro de comunicação com o servidor de pagamentos. \n\nIsso pode ocorrer porque o servidor gratuito entra em modo de 'espera' após um tempo inativo. Por favor, aguarde cerca de 45 segundos e clique em FINALIZAR novamente!"); 
+                    alert("Aviso: Ocorreu um erro de comunicação com o servidor. Por favor verifique a sua ligação ou tente novamente."); 
                 } finally { 
                     setLoading(false); 
                 }
@@ -760,9 +780,26 @@
                         )}
 
                         {step === 2 && (
-                            <form onSubmit={(e) => { e.preventDefault(); playSound('click'); setStep(3); window.scrollTo(0,0); }} className="bg-white p-6 rounded-[24px] shadow-sm space-y-4 border border-gray-100 animate-fade-in">
+                            <form onSubmit={(e) => { 
+                                e.preventDefault(); 
+                                // Bloqueia e avisa se o CPF for inválido
+                                if (!validarCPF(formData.cpf)) {
+                                    setCpfError(true);
+                                    alert("CPF Inválido! Por favor, verifique o número digitado para prosseguir.");
+                                    return;
+                                }
+                                playSound('click'); 
+                                setStep(3); 
+                                window.scrollTo(0,0); 
+                            }} className="bg-white p-6 rounded-[24px] shadow-sm space-y-4 border border-gray-100 animate-fade-in">
                                 <div><label className="text-[10px] font-black text-gray-400 uppercase ml-1">Nome Completo</label><input required type="text" className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:border-[#EA1D2C] font-medium mt-1" placeholder="Ex: José da Silva" onChange={e => setFormData({...formData, name: e.target.value})} /></div>
-                                <div><label className="text-[10px] font-black text-gray-400 uppercase ml-1">CPF</label><input required type="tel" className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:border-[#EA1D2C] font-medium mt-1" placeholder="000.000.000-00" onChange={e => setFormData({...formData, cpf: e.target.value})} /></div>
+                                
+                                <div>
+                                    <label className="text-[10px] font-black text-gray-400 uppercase ml-1">CPF</label>
+                                    <input required type="tel" className={`w-full bg-gray-50 border ${cpfError ? 'border-red-500 text-red-600 bg-red-50/50' : 'border-gray-200'} rounded-xl p-3 text-sm focus:outline-none focus:border-[#EA1D2C] font-medium mt-1 transition-colors`} placeholder="000.000.000-00" onChange={e => { setFormData({...formData, cpf: e.target.value}); setCpfError(false); }} />
+                                    {cpfError && <p className="text-red-500 text-[10px] font-bold mt-1 ml-1 animate-fade-in">⚠️ Preencha um CPF válido</p>}
+                                </div>
+
                                 <div><label className="text-[10px] font-black text-gray-400 uppercase ml-1">E-mail</label><input required type="email" className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:border-[#EA1D2C] font-medium mt-1" placeholder="seu@email.com" onChange={e => setFormData({...formData, email: e.target.value})} /></div>
                                 <div><label className="text-[10px] font-black text-gray-400 uppercase ml-1">Celular / WhatsApp</label><input required type="tel" className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:border-[#EA1D2C] font-medium mt-1" placeholder="(00) 00000-0000" onChange={e => setFormData({...formData, phone: e.target.value})} /></div>
                                 <button type="submit" className="w-full bg-[#EA1D2C] text-white font-black py-4 rounded-xl shadow-[0_8px_20px_rgba(234,29,44,0.3)] mt-4 uppercase tracking-wide">CONTINUAR PARA ENDEREÇO</button>
