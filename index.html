@@ -1,0 +1,1453 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Clube Oficial - Parceiro Entregador</title>
+    
+    <!-- Scripts Essenciais do React e Babel -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Fontes -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f3f4f6;
+            overflow-x: hidden;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .animate-bounce-in {
+            animation: bounceIn 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards;
+        }
+        
+        .animate-fade-in {
+            animation: fadeIn 0.4s ease-in-out forwards;
+        }
+        
+        .animate-slide-up {
+            animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes bounceIn {
+            0% { transform: scale(0.9); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        @keyframes fadeIn {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+        
+        @keyframes slideUp {
+            0% { transform: translateY(100%); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background-color: #f00;
+            animation: confetti-fall 3s linear infinite;
+            z-index: 9999;
+        }
+
+        @keyframes confetti-fall {
+            0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+        }
+
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        
+        .spinner {
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top: 3px solid #ffffff;
+            width: 20px;
+            height: 20px;
+            -webkit-animation: spin 1s linear infinite;
+            animation: spin 1s linear infinite;
+        }
+        
+        .spinner-red {
+            border: 3px solid rgba(234, 29, 44, 0.2);
+            border-top: 3px solid #EA1D2C;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .shipping-card {
+            border: 2px solid #e5e7eb;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .shipping-card.active {
+            border-color: #EA1D2C;
+            background-color: #fff1f2;
+            box-shadow: 0 4px 12px rgba(234, 29, 44, 0.1);
+        }
+
+        .step-pill {
+            height: 6px;
+            flex-grow: 1;
+            border-radius: 10px;
+            transition: background-color 0.3s;
+        }
+        
+        /* Checkbox customizado */
+        input[type=checkbox] {
+            accent-color: #EA1D2C;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div id="root">
+        <div id="initial-loader" style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; background:#f8f9fa;">
+            <div style="width:40px; height:40px; border:4px solid #EA1D2C; border-top:4px solid transparent; border-radius:50%; animation:spin 1s linear infinite;"></div>
+            <p style="margin-top:16px; color:#666; font-family:sans-serif; font-weight:bold;">Estabelecendo conexão segura...</p>
+        </div>
+    </div>
+
+    <script type="text/babel">
+        class ErrorBoundary extends React.Component {
+            constructor(props) { super(props); this.state = { hasError: false }; }
+            static getDerivedStateFromError(error) { return { hasError: true }; }
+            render() {
+                if (this.state.hasError) {
+                    return (
+                        <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4 text-center">
+                            <h2 className="text-xl font-black mb-4 text-[#EA1D2C]">Ops, houve um problema técnico!</h2>
+                            <button onClick={() => { localStorage.clear(); window.location.reload(); }} className="bg-[#EA1D2C] text-white px-6 py-3 rounded-xl font-bold uppercase">Reiniciar Aplicativo</button>
+                        </div>
+                    );
+                }
+                return this.props.children;
+            }
+        }
+
+        const safeGetLocal = (key) => {
+            try { return JSON.parse(localStorage.getItem(key)); } catch (e) { return null; }
+        };
+
+        const safeSetLocal = (key, value) => {
+            try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) {}
+        };
+
+        const REDIRECT_URL = "https://entregador.ifood.com.br/";
+
+        const STORE_BANNERS = [
+            "https://i.imgur.com/r7T9hLZ.jpeg",
+            "https://i.imgur.com/CKpvpF5.png",
+            "https://i.imgur.com/lPcyHMQ.jpeg",
+            "https://i.imgur.com/x0y7EBI.jpeg",
+            "https://i.imgur.com/Dq45AQQ.jpeg"
+        ];
+
+        // --- DESCONTOS ALEATÓRIOS E REALISTAS (50% a 80%) ---
+        const PRIZES = [
+            { id: 1, label: '?', reveal: '50% OFF', color: '#3B82F6', value: 0.50 },
+            { id: 2, label: '?', reveal: '60% OFF', color: '#F59E0B', value: 0.60 },
+            { id: 3, label: '?', reveal: '65% OFF', color: '#10B981', value: 0.65 },
+            { id: 4, label: '?', reveal: '80% OFF', color: '#EA1D2C', value: 0.80 }, 
+            { id: 5, label: '?', reveal: '70% OFF', color: '#8B5CF6', value: 0.70 },
+            { id: 6, label: '?', reveal: '75% OFF', color: '#EC4899', value: 0.75 },
+        ];
+
+        const PRODUCTS = [
+            { id: 13, name: "CORTA VENTO IFOOD SUPER", brand: "iFood", originalPrice: 204.25, image: "https://i.imgur.com/ZWk04eU.jpeg", sizes: ['P', 'M', 'G', 'GG'], tag: "ÚLTIMAS UNIDADES", stockLeft: 1, category: 'jacket' },
+            { id: 14, name: "CAMISETA FIT IFOOD SUPER", brand: "iFood", originalPrice: 54.77, image: "https://i.imgur.com/iAc170h.jpeg", sizes: ['P', 'M', 'G', 'GG'], tag: "NOVIDADE", stockLeft: 18, category: 'jacket' },
+            { id: 15, name: "CAMISETA UV IFOOD SUPER", brand: "iFood", originalPrice: 39.46, image: "https://i.imgur.com/5HgCmLh.jpeg", sizes: ['P', 'M', 'G', 'GG'], tag: "DIA A DIA", stockLeft: 30, category: 'jacket' },
+            { id: 16, name: "JAQUETA IFOOD SUPER", brand: "iFood", originalPrice: 294.50, image: "https://i.imgur.com/MuKKCkt.jpeg", sizes: ['P', 'M', 'G', 'GG'], tag: "LANÇAMENTO", stockLeft: 7, category: 'jacket' },
+            { id: 17, name: "MOLETOM IFOOD SUPER", brand: "iFood", originalPrice: 81.23, image: "https://i.imgur.com/AttMZdt.jpeg", sizes: ['P', 'M', 'G', 'GG'], tag: "INVERNO", stockLeft: 12, category: 'jacket' },
+            { id: 3, name: "JAQUETA IMPERMEÁVEL CR PROTECTION", brand: "CR", originalPrice: 199.90, image: "https://i.imgur.com/EoZ4Fjt.jpeg", sizes: ['P', 'M', 'G', 'GG', 'XG'], tag: "ESSENCIAL", stockLeft: 12, category: 'jacket' },
+            { id: 4, name: "KIT UNIFORME COMPLETO CR (CALÇA E JAQUETA)", brand: "CR", originalPrice: 359.90, image: "https://i.imgur.com/z6Nuf38.png", sizes: ['P', 'M', 'G', 'GG'], tag: "KIT PRO", stockLeft: 3, category: 'jacket' },
+            { id: 5, name: "JAQUETA TRIBORD MODELO 600 - CORTA VENTO", brand: "TRIBORD", originalPrice: 289.90, image: "https://i.imgur.com/ePcrkxf.png", sizes: ['P', 'M', 'G', 'GG'], tag: "ALTA RESISTÊNCIA", stockLeft: 8, category: 'jacket' },
+            { id: 6, name: "CALÇA TRIBORD 600 REFORÇADA", brand: "TRIBORD", originalPrice: 189.90, image: "https://i.imgur.com/PaNSGOI.png", sizes: ['38', '40', '42', '44', '46', '48'], tag: "IMPERMEÁVEL", stockLeft: 15, category: 'jacket' },
+            { id: 7, name: "CAPA DE CHUVA OFICIAL IFOOD", brand: "iFood", originalPrice: 159.90, image: "https://i.imgur.com/lSFphlk.jpeg", sizes: ['P', 'M', 'G', 'GG'], tag: "OFICIAL", stockLeft: 2, category: 'raingear' },
+            { id: 8, name: "CONJUNTO CAPA DE CHUVA CR NYLON", brand: "CR", originalPrice: 189.90, image: "https://i.imgur.com/f21dfhC.png", sizes: ['P', 'M', 'G', 'GG'], tag: "NYLON", stockLeft: 10, category: 'raingear' },
+            { id: 1, name: "CAPACETE LS2 FF358 TECH - PRETO/VERMELHO", brand: "LS2", originalPrice: 599.90, image: "https://i.imgur.com/J84gKuV.png", sizes: [56, 58, 60, 62], tag: "ÚLTIMAS UNIDADES", stockLeft: 4, category: 'helmet', fixedDiscount: 0.48 },
+            { id: 2, name: "CAPACETE NORISK RAZOR SPEED", brand: "Norisk", originalPrice: 489.90, image: "https://i.imgur.com/uB7hyLh.png", sizes: [56, 58, 60, 62, 64], tag: "ESGOTADO", stockLeft: 0, category: 'helmet' },
+            { id: 18, name: "CAPA BAG ENTREGADOR IFOOD - SEM ISOPOR", brand: "iFood", originalPrice: 110.11, image: "https://i.imgur.com/oRKiE2Q.jpeg", tag: "MAIS VENDIDO", stockLeft: 25, category: 'accessories' },
+            { id: 9, name: "BAÚ MOTO 135 LITROS - REFORÇADO", brand: "PRO TORK", originalPrice: 249.90, image: "https://i.imgur.com/cWnUdFo.jpeg", tag: "ENTREGA", stockLeft: 5, category: 'accessories' },
+            { id: 10, name: "BAG IFOOD TÉRMICA EXPANSÍVEL", brand: "iFood", originalPrice: 170.00, image: "https://i.imgur.com/g25nf9c.jpeg", tag: "TOP SELLER", stockLeft: 1, category: 'accessories' },
+            { id: 11, name: "POWER BANK 30.000MAH TURBO", brand: "PINENG", originalPrice: 199.90, image: "https://i.imgur.com/NByguh5.png", tag: "TURBO", stockLeft: 6, category: 'accessories' },
+            { id: 12, name: "POWER BANK 20.000MAH TURBO", brand: "BASEUS", originalPrice: 89.90, image: "https://i.imgur.com/rNO0ljG.png", tag: "RÁPIDO", stockLeft: 20, category: 'accessories' },
+            { id: 19, name: "KIT 4 ÓLEOS DE MOTOR - PETRONAS SPRINTA F900 10W-40 SN", brand: "PETRONAS", originalPrice: 154.60, image: "https://i.imgur.com/XcPyHIz.jpeg", tag: "KIT PRO", stockLeft: 15, category: 'oil' },
+            { id: 20, name: "KIT 4 ÓLEOS DE MOTOR - PETRONAS SPRINTA F500 10W-30 SL", brand: "PETRONAS", originalPrice: 121.72, image: "https://i.imgur.com/IXqe2sh.jpeg", tag: "KIT", stockLeft: 22, category: 'oil' },
+            { id: 21, name: "KIT PROTEÇÃO ESSENCIAL: 4 ÓLEOS PETRONAS SPRINTA F300 20W-50 SL + LUBRIFICANTE", brand: "PETRONAS", originalPrice: 132.57, image: "https://i.imgur.com/ioOEp8w.jpeg", tag: "ESSENCIAL", stockLeft: 10, category: 'oil' },
+            { id: 22, name: "KIT PROTEÇÃO AVANÇADA: 4 ÓLEOS PETRONAS SPRINTA F500 10W-30 SL + LUBRIFICANTE", brand: "PETRONAS", originalPrice: 151.41, image: "https://i.imgur.com/P6NYCI8.jpeg", tag: "AVANÇADA", stockLeft: 8, category: 'oil' },
+            { id: 23, name: "ÓLEO DE MOTOR - PETRONAS SPRINTA F500 10W-30 SL", brand: "PETRONAS", originalPrice: 32.03, image: "https://i.imgur.com/d6mitp4.jpeg", tag: "SINTÉTICO", stockLeft: 40, category: 'oil' },
+            { id: 24, name: "KIT PERFORMANCE DEFINITIVA: 4 ÓLEOS PETRONAS SPRINTA F900 10W-40 SN + LUBRIFICANTE", brand: "PETRONAS", originalPrice: 184.29, image: "https://i.imgur.com/j63Y05M.jpeg", tag: "PERFORMANCE", stockLeft: 5, category: 'oil' },
+            { id: 25, name: "ÓLEO DE MOTOR - PETRONAS SPRINTA F900 10W-40 SN", brand: "PETRONAS", originalPrice: 40.69, image: "https://i.imgur.com/z72ANe9.jpeg", tag: "PREMIUM", stockLeft: 35, category: 'oil' },
+            { id: 26, name: "KIT 4 ÓLEOS DE MOTOR - PETRONAS SPRINTA F300 20W-50 SL", brand: "PETRONAS", originalPrice: 102.88, image: "https://i.imgur.com/4lzOa2P.jpeg", tag: "CUSTO BENEFÍCIO", stockLeft: 14, category: 'oil' },
+            { id: 27, name: "ÓLEO DE MOTOR - PETRONAS SPRINTA F300 20W-50 SL", brand: "PETRONAS", originalPrice: 27.08, image: "https://i.imgur.com/P95Tgf8.jpeg", tag: "MINERAL", stockLeft: 50, category: 'oil' },
+            { id: 28, name: "LUBRIFICANTE DE CORRENTE - PETRONAS SPRINTA CHAIN LUBE", brand: "PETRONAS", originalPrice: 31.25, image: "https://i.imgur.com/q8jthqK.jpeg", tag: "MANUTENÇÃO", stockLeft: 28, category: 'oil' }
+        ];
+
+        const CATEGORIES = [
+            { id: 'home', label: 'Início', icon: <><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></> },
+            { id: 'helmet', label: 'Capacetes', icon: <><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></> },
+            { id: 'jacket', label: 'Roupas', icon: <path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"/> },
+            { id: 'raingear', label: 'Capas', icon: <><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M16 16v6"/><path d="M8 16v6"/><path d="M12 18v6"/></> },
+            { id: 'accessories', label: 'Acessórios', icon: <><rect x="2" y="7" width="20" height="14" rx="2" ry="2" /><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" /></> },
+            { id: 'oil', label: 'Óleos', icon: <><path d="M12 2c0 0-5 6.5-5 11a5 5 0 0 0 10 0c0-4.5-5-11-5-11Z"/><path d="M12 22a5 5 0 0 0 5-5c0-4.5-5-11-5-11S7 12.5 7 17a5 5 0 0 0 5 5Z"/></> }
+        ];
+
+        const REVIEWS_BY_PRODUCT_ID = {
+            1: [
+                { name: "Marcos S.", cpf: "***.342.118-**", rating: 5, text: "O capacete LS2 é original mesmo. Fiquei desconfiado pela oferta, mas chegou certinho com a nota fiscal no meu nome.", date: "Ontem" },
+                { name: "Thiago M.", cpf: "***.881.209-**", rating: 5, text: "Top demais, muito seguro e bonito. A viseira não embaça fácil na chuva.", date: "Há 3 dias" }
+            ],
+            2: [
+                { name: "Felipe J.", cpf: "***.102.334-**", rating: 5, text: "Norisk é outra vida! Muito leve e confortável, o pescoço agradece no final do dia de entregas.", date: "Há 2 dias" }
+            ],
+            3: [
+                { name: "André L.", cpf: "***.902.334-**", rating: 5, text: "A jaqueta CR segura bem o frio e a chuva fina. Chegou em 4 dias em Curitiba. Recomendo o resgate.", date: "Há 2 dias" }
+            ],
+            4: [
+                { name: "Carlos E.", cpf: "***.554.122-**", rating: 5, text: "Kit top demais, calça e jaqueta vestem super bem e não passa vento de jeito nenhum. Melhor investimento.", date: "Há 5 dias" }
+            ],
+            5: [
+                { name: "Lucas R.", cpf: "***.776.543-**", rating: 5, text: "A melhor corta vento que já usei na moto. Vale cada centavo, principalmente com esse desconto liberado.", date: "Ontem" }
+            ],
+            6: [
+                { name: "Renato P.", cpf: "***.223.998-**", rating: 5, text: "Calça muito reforçada, não rasga fácil no joelho igual as outras de plástico. Material excelente.", date: "Há 1 dia" }
+            ],
+            7: [
+                { name: "Roberto K.", cpf: "***.112.544-**", rating: 5, text: "Aqui chove todo dia e essa capa oficial aguentou sem vazar nada. Paguei só o frete, valeu muito a pena.", date: "Hoje" }
+            ],
+            8: [
+                { name: "Gustavo H.", cpf: "***.441.887-**", rating: 5, text: "Nylon grosso, não entra uma gota de água. Peguei temporal ontem e cheguei seco nas entregas.", date: "Há 3 dias" }
+            ],
+            9: [
+                { name: "Bruno T.", cpf: "***.665.433-**", rating: 5, text: "Baú gigante, cabe muita entrega e a tranca é bem segura. Chegou em 3 dias aqui em SP pelo frete oficial.", date: "Há 4 dias" }
+            ],
+            10: [
+                { name: "Diego R.", cpf: "***.566.211-**", rating: 5, text: "A bag é original e muito resistente. Custo-benefício absurdo pra quem já trampa na rua todo dia.", date: "Há 4 dias" }
+            ],
+            11: [
+                { name: "Vinícius C.", cpf: "***.990.112-**", rating: 5, text: "Carrega meu celular umas 6 vezes tranquilo enquanto tô rodando. Nunca mais fiquei sem bateria no meio da rota.", date: "Ontem" }
+            ],
+            12: [
+                { name: "Matheus B.", cpf: "***.334.551-**", rating: 5, text: "Pequeno, cabe no bolso da jaqueta e segura a carga o dia todo na rua. Veio lacrado na caixa.", date: "Há 2 dias" }
+            ],
+            13: [
+                { name: "Pedro H.", cpf: "***.445.122-**", rating: 5, text: "Muito leve e corta o vento perfeitamente, excelente para trampar de noite. Recomendo!", date: "Hoje" }
+            ],
+            14: [
+                { name: "João V.", cpf: "***.778.991-**", rating: 5, text: "Tecido top, seca rápido e a estampa é original. Vestiu muito bem no corpo.", date: "Há 1 dia" }
+            ],
+            15: [
+                { name: "Rafael S.", cpf: "***.112.443-**", rating: 5, text: "Protege bem do sol, uso todos os dias por baixo da jaqueta ou capa. Ótimo material.", date: "Ontem" }
+            ],
+            16: [
+                { name: "Tiago B.", cpf: "***.665.221-**", rating: 5, text: "Qualidade absurda, material bem grosso e as costuras são reforçadas. Vale a pena.", date: "Há 2 dias" }
+            ],
+            17: [
+                { name: "Felipe M.", cpf: "***.331.884-**", rating: 5, text: "Esquenta demais, muito macio por dentro. Perfeito para os dias mais frios de entrega.", date: "Há 4 dias" }
+            ],
+            18: [
+                { name: "Lucas D.", cpf: "***.901.442-**", rating: 5, text: "Material de primeira, o isopor segura bem a temperatura. Bag original e com muito espaço.", date: "Hoje" }
+            ],
+            21: [
+                { name: "Carlos J.", cpf: "***.883.112-**", rating: 5, text: "O kit é sensacional, óleo original Petronas, vem lacrado bonitinho. Motor roda liso.", date: "Ontem" }
+            ],
+            24: [
+                { name: "Bruno T.", cpf: "***.552.331-**", rating: 5, text: "Excelente promoção, o lubrificante de corrente adere muito bem e não espirra na roda.", date: "Há 3 dias" }
+            ]
+        };
+
+        const NOTIF_NAMES = [
+            "João", "Lucas", "Pedro", "Marcos", "Gabriel", "Thiago", "Rafael", 
+            "Bruno", "Diego", "Carlos", "Felipe", "Matheus", "Guilherme", "Rodrigo", 
+            "Leonardo", "Eduardo", "Gustavo", "Fernando", "Marcelo", "Vinícius", "André", "Renato",
+            "Maria", "Ana", "Julia", "Fernanda", "Camila", "Letícia", "Amanda"
+        ];
+        const NOTIF_INITIALS = ["S.", "M.", "A.", "C.", "R.", "F.", "T.", "L.", "P.", "V.", "B.", "N."];
+        const NOTIF_ACTIONS = [
+            "acabou de resgatar um Capacete LS2",
+            "teve o pagamento PIX aprovado",
+            "resgatou a Jaqueta Impermeável",
+            "garantiu o Kit Uniforme Completo",
+            "finalizou o resgate da Bag Térmica",
+            "aproveitou a condition promocional de 80%",
+            "garantiu a Capa de Chuva Oficial",
+            "acabou de pagar a taxa de envio via PIX",
+            "resgatou um Baú Moto 135L",
+            "teve o pedido liberado para envio"
+        ];
+
+        const FAQS = [
+            { q: "Os produtos são originais?", a: "Sim. Todos são enviados com nota fiscal e garantia do fabricante." },
+            { q: "Qual o prazo de entrega?", a: "O envio é feito em até 24h úteis após a confirmação. O prazo médio de entrega varia entre 3 e 7 dias úteis." },
+            { q: "Posso acompanhar meu pedido?", a: "Sim. Após o envio, você recebe o código de rastreio." }
+        ];
+
+        const calculatePrice = (original, discount) => (original * (1 - discount)).toFixed(2);
+
+        const playSound = (key) => {
+            const urls = { click: "https://www.soundjay.com/buttons/sounds/button-16.mp3", spin: "https://www.soundjay.com/mechanical/sounds/ratchet-1.mp3", win: "https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3" };
+            try { const audio = new Audio(urls[key]); audio.volume = 0.3; audio.play().catch(()=>{}); } catch (e) {}
+        };
+
+        // --- VALIDADOR MATEMÁTICO DE CPF ---
+        const validarCPF = (cpf) => {
+            cpf = cpf.replace(/[^\d]+/g, '');
+            if (cpf == '' || cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false;
+            let soma = 0;
+            for (let i = 1; i <= 9; i++) soma += parseInt(cpf.substring(i - 1, i)) * (11 - i);
+            let resto = (soma * 10) % 11;
+            if ((resto === 10) || (resto === 11)) resto = 0;
+            if (resto !== parseInt(cpf.substring(9, 10))) return false;
+            soma = 0;
+            for (let i = 1; i <= 10; i++) soma += parseInt(cpf.substring(i - 1, i)) * (12 - i);
+            resto = (soma * 10) % 11;
+            if ((resto === 10) || (resto === 11)) resto = 0;
+            if (resto !== parseInt(cpf.substring(10, 11))) return false;
+            return true;
+        };
+
+        // --- NOVO FUNIL DE PRÉ-QUALIFICAÇÃO (LANDING PAGE + MODAL) ---
+        const PreQualification = ({ onComplete }) => {
+            const [bloco, setBloco] = React.useState(0); 
+            const [valStep, setValStep] = React.useState(1);
+            const [dados, setDados] = React.useState({ nome: '', cpf: '', whatsapp: '', modelo: '', termo: false });
+            const [cpfError, setCpfError] = React.useState(false);
+            const [loadingCheck, setLoadingCheck] = React.useState(0);
+            const [successCheck, setSuccessCheck] = React.useState(0); 
+            const [loadingSorteio, setLoadingSorteio] = React.useState(true); 
+            const [showChance, setShowChance] = React.useState(false);
+
+            // Máscara e Validação
+            const handleCpfChange = (e) => {
+                let val = e.target.value.replace(/\D/g, '');
+                if (val.length <= 11) {
+                    val = val.replace(/(\d{3})(\d)/, '$1.$2');
+                    val = val.replace(/(\d{3})(\d)/, '$1.$2');
+                    val = val.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+                    setDados({...dados, cpf: val});
+                    setCpfError(false);
+                }
+            };
+
+            const handlePhoneChange = (e) => {
+                let val = e.target.value.replace(/\D/g, '');
+                if (val.length <= 11) {
+                    val = val.replace(/(\d{2})(\d)/, '($1) $2');
+                    val = val.replace(/(\d{5})(\d)/, '$1-$2');
+                    setDados({...dados, whatsapp: val});
+                }
+            };
+
+            // Modal Form -> Bloco 2 (E Guarda os dados para auto-preencher depois)
+            const submitConsulta = (e) => {
+                e.preventDefault();
+                playSound('click');
+                if (!validarCPF(dados.cpf)) {
+                    setCpfError(true);
+                    return;
+                }
+                // Guarda nome, cpf e whatsapp para auto-preenchimento no Checkout
+                safeSetLocal('entregador_user_name', dados.nome); 
+                safeSetLocal('entregador_user_cpf', dados.cpf);
+                safeSetLocal('entregador_user_phone', dados.whatsapp);
+                
+                setBloco(2);
+                window.scrollTo(0,0);
+            };
+
+            // Bloco 2 (Loading) -> Bloco 3
+            React.useEffect(() => {
+                if (bloco === 2) {
+                    const timers = [
+                        setTimeout(() => setLoadingCheck(1), 1200),
+                        setTimeout(() => setLoadingCheck(2), 2400),
+                        setTimeout(() => setLoadingCheck(3), 3600),
+                        setTimeout(() => setBloco(3), 5000)
+                    ];
+                    return () => timers.forEach(clearTimeout);
+                }
+            }, [bloco]);
+
+            // Bloco 5 -> Animação progressiva dos checks verdes
+            React.useEffect(() => {
+                if (bloco === 5) {
+                    const timers = [
+                        setTimeout(() => setSuccessCheck(1), 600),
+                        setTimeout(() => setSuccessCheck(2), 1400),
+                        setTimeout(() => setSuccessCheck(3), 2200)
+                    ];
+                    return () => timers.forEach(clearTimeout);
+                }
+            }, [bloco]);
+
+            // Bloco 6 -> Lógica de suspense do Sorteio e revelação da chance extra (ACELERADO)
+            React.useEffect(() => {
+                if (bloco === 6) {
+                    setLoadingSorteio(true);
+                    setShowChance(false);
+                    // Fica girando "Apurando resultado" por apenas 2.5 segundos
+                    const t1 = setTimeout(() => setLoadingSorteio(false), 2500); 
+                    // Depois que mostra que perdeu, espera mais 1.5 segundos pra oferecer a roleta (Total 4s)
+                    const t2 = setTimeout(() => setShowChance(true), 4000); 
+                    
+                    return () => { clearTimeout(t1); clearTimeout(t2); };
+                }
+            }, [bloco]);
+
+            const getButtonClass = (isActive) => {
+                return `w-full mb-3 font-bold py-4 rounded-xl transition-all border-2 text-left px-6 bg-white border-gray-200 text-gray-800 hover:border-[#EA1D2C] active:bg-gray-50`;
+            };
+
+            const handleAnswer = () => {
+                playSound('click');
+                if (valStep < 5) {
+                    setTimeout(() => setValStep(valStep + 1), 300);
+                } else {
+                    // Após a última pergunta da validação, vai para Bloco 5 (Verificação Concluída)
+                    setTimeout(() => {
+                        setBloco(5);
+                        window.scrollTo(0,0);
+                    }, 400);
+                }
+            };
+
+            return (
+                <div className="flex flex-col flex-1 font-sans">
+                    
+                    {/* BLOCOS 0 E 1: LANDING PAGE */}
+                    {(bloco === 0 || bloco === 1) && (
+                        <div className={`flex-1 w-full relative flex flex-col items-center justify-between pb-8 pt-4 overflow-hidden transition-all duration-300 ${bloco === 1 ? 'blur-[2px] brightness-50' : ''}`} 
+                             style={{ 
+                                 backgroundColor: '#EA1D2C',
+                                 backgroundImage: 'url(https://i.imgur.com/fSeAPYQ.jpeg)',
+                                 backgroundSize: 'cover',
+                                 backgroundPosition: 'top center',
+                                 backgroundRepeat: 'no-repeat'
+                             }}>
+                            
+                            {/* Efeitos de Fundo com Imagem */}
+                            <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-[180%] h-[60%] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-yellow-500/40 via-transparent to-transparent opacity-80 pointer-events-none z-0"></div>
+
+                            {/* TOPO: Moldura invisível muito maior para empurrar o botão lá para baixo */}
+                            <div className="relative z-10 flex flex-col items-center w-full px-6 text-center mt-2 min-h-[380px] grow">
+                                {/* Espaço vazio aumentado (380px + grow) para descer o conteúdo inferior */}
+                            </div>
+
+                            {/* BASE: Botão (Movido para o fundo extremo) */}
+                            <div className="relative z-10 w-full px-6 mt-auto max-w-sm mx-auto flex flex-col items-center mb-2">
+                                
+                                <button onClick={() => { playSound('click'); setBloco(1); }} className="w-full bg-yellow-400 hover:bg-yellow-500 text-red-900 font-black py-[20px] rounded-[20px] shadow-[0_10px_35px_rgba(250,204,21,0.4)] text-[17px] flex justify-center items-center gap-2 transition-transform active:scale-95 uppercase tracking-wide border-b-[5px] border-yellow-600">
+                                    CONSULTAR AGORA <span className="text-xl ml-1 leading-none">→</span>
+                                </button>
+                                
+                                <div className="text-center text-white/80 text-[9px] mt-4 font-bold uppercase tracking-widest space-y-1 drop-shadow-md">
+                                    <p>*Confira a elegibilidade do perfil</p>
+                                    <p>*Equipamentos sujeitos a estoque</p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* BLOCO 1 (OVERLAY MODAL) */}
+                    {bloco === 1 && (
+                        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 animate-fade-in p-0 sm:p-4">
+                            <div className="bg-white w-full max-w-md rounded-t-[32px] sm:rounded-[32px] p-7 pb-10 shadow-[0_-10px_40px_rgba(0,0,0,0.3)] relative animate-slide-up sm:animate-bounce-in max-h-[90vh] overflow-y-auto hide-scrollbar">
+                                <button type="button" onClick={() => setBloco(0)} className="absolute top-5 right-5 text-gray-400 hover:text-gray-800 bg-gray-100 hover:bg-gray-200 rounded-full p-2 transition-colors">
+                                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                                </button>
+
+                                <h2 className="text-[22px] font-black text-gray-900 mb-6 pr-10 leading-tight tracking-tight">Confira se você foi sorteado</h2>
+
+                                <form onSubmit={submitConsulta} className="space-y-4">
+                                    <div>
+                                        <input required type="text" className="w-full bg-gray-50 border border-gray-200 rounded-[14px] p-4 text-[15px] focus:outline-none focus:border-[#EA1D2C] focus:ring-2 focus:ring-red-100 font-medium transition-all placeholder:text-gray-400" placeholder="Nome Completo (Ex: João Rodrigues)" value={dados.nome} onChange={e => setDados({...dados, nome: e.target.value})} />
+                                    </div>
+                                    
+                                    <div>
+                                        <input required type="tel" className={`w-full bg-gray-50 border ${cpfError ? 'border-red-500 bg-red-50' : 'border-gray-200'} rounded-[14px] p-4 text-[15px] focus:outline-none focus:border-[#EA1D2C] focus:ring-2 focus:ring-red-100 font-medium transition-all placeholder:text-gray-400`} placeholder="CPF" value={dados.cpf} onChange={handleCpfChange} />
+                                        {cpfError && <p className="text-red-500 text-[11px] font-bold mt-2 ml-2 animate-fade-in">⚠️ Preencha um CPF válido</p>}
+                                    </div>
+                                    
+                                    <div>
+                                        <input required type="tel" className="w-full bg-gray-50 border border-gray-200 rounded-[14px] p-4 text-[15px] focus:outline-none focus:border-[#EA1D2C] focus:ring-2 focus:ring-red-100 font-medium transition-all placeholder:text-gray-400" placeholder="WhatsApp" value={dados.whatsapp} onChange={handlePhoneChange} />
+                                    </div>
+                                    
+                                    <div className="pt-3 pb-2">
+                                        <label className="text-[13px] font-bold text-gray-600 block mb-3">Como você faz suas entregas?</label>
+                                        <div className="flex gap-2 flex-wrap">
+                                            {['Bike', 'Moto', 'Carro'].map(m => (
+                                                <div key={m} onClick={() => { playSound('click'); setDados({...dados, modelo: m}); }} className={`py-3 px-1 rounded-xl border-[1.5px] cursor-pointer transition-all flex-1 text-center min-w-[70px] ${dados.modelo === m ? 'bg-red-50 border-[#EA1D2C] text-[#EA1D2C] font-black shadow-sm' : 'bg-white border-gray-200 text-gray-600 font-medium hover:border-gray-300'}`}>
+                                                    <span className="text-[13px] tracking-wide">{m}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <label className="flex items-start gap-3 mt-4 mb-2 cursor-pointer p-2 rounded-lg hover:bg-gray-50 transition-colors">
+                                        <input type="checkbox" required checked={dados.termo} onChange={e => setDados({...dados, termo: e.target.checked})} className="mt-0.5 w-5 h-5 rounded border-gray-300" />
+                                        <span className="text-[11px] text-gray-500 leading-snug font-medium">Concordo em fornecer meus dados para receber conteúdos e ofertas por e-mail ou outros meios</span>
+                                    </label>
+                                    
+                                    <button type="submit" disabled={!dados.modelo || !dados.termo} className={`w-full text-white font-black py-4 rounded-[16px] shadow-lg mt-4 text-[15px] uppercase tracking-wide transition-all ${dados.modelo && dados.termo ? 'bg-[#EA1D2C] active:scale-95 hover:bg-red-700' : 'bg-gray-300 text-gray-500 shadow-none cursor-not-allowed'}`}>
+                                        Continuar <span className="ml-1">→</span>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* BLOCOS 2 A 6 (FLUXO INTERNO PÓS-MODAL) */}
+                    {bloco >= 2 && (
+                        <div className="flex-1 bg-white flex flex-col pt-10 px-6 pb-20 items-center">
+                            <div className="max-w-md w-full">
+                                
+                                {/* BLOCO 2 - LOADING INICIAL DA VALIDAÇÃO */}
+                                {bloco === 2 && (
+                                    <div className="flex flex-col items-center justify-center py-10 animate-fade-in text-center">
+                                        <div className="w-16 h-16 border-4 border-gray-100 border-t-[#EA1D2C] rounded-full animate-spin mb-8"></div>
+                                        <h2 className="text-xl font-black text-gray-900 uppercase tracking-tight mb-10">Verificando informações...</h2>
+                                        
+                                        <div className="space-y-5 w-full max-w-[260px] text-left ml-4">
+                                            <div className="flex items-center gap-4 transition-opacity duration-500" style={{opacity: loadingCheck >= 1 ? 1 : 0.2}}>
+                                                <div className={`w-7 h-7 rounded-full flex items-center justify-center shadow-sm ${loadingCheck >= 1 ? 'bg-gray-800' : 'bg-gray-200'}`}>
+                                                    <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                                                </div>
+                                                <span className="text-[15px] font-bold text-gray-700 tracking-tight">Analisando dados...</span>
+                                            </div>
+                                            <div className="flex items-center gap-4 transition-opacity duration-500" style={{opacity: loadingCheck >= 2 ? 1 : 0.2}}>
+                                                <div className={`w-7 h-7 rounded-full flex items-center justify-center shadow-sm ${loadingCheck >= 2 ? 'bg-gray-800' : 'bg-gray-200'}`}>
+                                                    <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                                                </div>
+                                                <span className="text-[15px] font-bold text-gray-700 tracking-tight">Conectando ao sistema</span>
+                                            </div>
+                                            <div className="flex items-center gap-4 transition-opacity duration-500" style={{opacity: loadingCheck >= 3 ? 1 : 0.2}}>
+                                                <div className={`w-7 h-7 rounded-full flex items-center justify-center shadow-sm ${loadingCheck >= 3 ? 'bg-[#EA1D2C]' : 'bg-gray-200'}`}>
+                                                    <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                                                </div>
+                                                <span className="text-[15px] font-bold text-gray-700 tracking-tight">Preparando validação</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* BLOCO 3 - SAUDAÇÃO COM NOME ANTES DA VALIDAÇÃO */}
+                                {bloco === 3 && (
+                                    <div className="animate-bounce-in text-center py-6">
+                                        <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6 border-2 border-[#EA1D2C] overflow-hidden shadow-md">
+                                            <img src="https://i.imgur.com/tHulsoM.png" alt="Perfil do Entregador" className="w-full h-full object-cover" />
+                                        </div>
+                                        <h1 className="text-3xl font-black text-gray-900 mb-4 leading-tight tracking-tighter">Olá, {dados.nome.trim().split(' ')[0] || 'Entregador'}.</h1>
+                                        <p className="text-[15px] text-gray-600 font-medium leading-relaxed mb-10">
+                                            Identificamos seu cadastro.<br/><br/>
+                                            Agora vamos confirmar se você<br/>está ativo na plataforma de entregas.
+                                        </p>
+                                        <button onClick={() => { playSound('click'); setBloco(4); }} className="w-full bg-[#EA1D2C] hover:bg-red-700 text-white font-black py-4 rounded-xl shadow-[0_8px_20px_rgba(234,29,44,0.3)] uppercase tracking-wide active:scale-95 transition-transform text-[15px]">
+                                            INICIAR VALIDAÇÃO
+                                        </button>
+                                    </div>
+                                )}
+
+                                {/* BLOCO 4 - PERGUNTAS DE VALIDAÇÃO */}
+                                {bloco === 4 && (
+                                    <div className="animate-fade-in">
+                                        <div className="mb-10 flex items-center gap-3">
+                                            <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center border border-gray-200">
+                                                <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
+                                            </div>
+                                            <div>
+                                                <span className="font-black text-gray-900 block leading-none text-sm">Validação do Entregador(a)</span>
+                                                <span className="text-[#EA1D2C] text-[10px] font-bold uppercase tracking-widest">Pergunta {valStep} de 5</span>
+                                            </div>
+                                        </div>
+
+                                        {valStep === 1 && (
+                                            <div className="animate-fade-in">
+                                                <p className="font-black text-gray-800 text-xl mb-6">Você realizou entregas nos últimos 7 dias?</p>
+                                                <button onClick={handleAnswer} className={getButtonClass()}>Sim, todos os dias</button>
+                                                <button onClick={handleAnswer} className={getButtonClass()}>Sim, em alguns dias</button>
+                                                <button onClick={handleAnswer} className={getButtonClass()}>Não</button>
+                                            </div>
+                                        )}
+
+                                        {valStep === 2 && (
+                                            <div className="animate-fade-in">
+                                                <p className="font-black text-gray-800 text-xl mb-6">Qual meio você utiliza para trabalhar?</p>
+                                                <button onClick={handleAnswer} className={getButtonClass()}>Moto</button>
+                                                <button onClick={handleAnswer} className={getButtonClass()}>Bike</button>
+                                                <button onClick={handleAnswer} className={getButtonClass()}>Carro</button>
+                                            </div>
+                                        )}
+
+                                        {valStep === 3 && (
+                                            <div className="animate-fade-in">
+                                                <p className="font-black text-gray-800 text-xl mb-6">Há quanto tempo você trabalha com entregas?</p>
+                                                <button onClick={handleAnswer} className={getButtonClass()}>Menos de 6 meses</button>
+                                                <button onClick={handleAnswer} className={getButtonClass()}>Entre 6 meses e 1 ano</button>
+                                                <button onClick={handleAnswer} className={getButtonClass()}>Mais de 1 ano</button>
+                                            </div>
+                                        )}
+
+                                        {valStep === 4 && (
+                                            <div className="animate-fade-in">
+                                                <p className="font-black text-gray-800 text-xl mb-6">Quantas corridas você conclui em média por dia?</p>
+                                                <button onClick={handleAnswer} className={getButtonClass()}>Até 5 corridas</button>
+                                                <button onClick={handleAnswer} className={getButtonClass()}>De 6 a 15 corridas</button>
+                                                <button onClick={handleAnswer} className={getButtonClass()}>Mais de 15 corridas</button>
+                                            </div>
+                                        )}
+
+                                        {valStep === 5 && (
+                                            <div className="animate-fade-in">
+                                                <p className="font-black text-gray-800 text-xl mb-6">Qual a sua taxa de aceitação média no aplicativo?</p>
+                                                <button onClick={handleAnswer} className={getButtonClass()}>Acima de 80%</button>
+                                                <button onClick={handleAnswer} className={getButtonClass()}>Entre 50% e 80%</button>
+                                                <button onClick={handleAnswer} className={getButtonClass()}>Abaixo de 50% / Não sei</button>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+
+                                {/* BLOCO 5 - NOVA TELA DE VERIFICAÇÃO CONCLUÍDA (PERFIL ATIVO) */}
+                                {bloco === 5 && (
+                                    <div className="animate-bounce-in text-center py-6">
+                                        <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-6 border-2 border-green-100">
+                                            <svg className="w-8 h-8 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                                        </div>
+                                        <h2 className="text-2xl font-black text-gray-900 mb-6 tracking-tight uppercase">VERIFICAÇÃO CONCLUÍDA</h2>
+                                        
+                                        <div className="space-y-4 w-full max-w-[260px] text-left mx-auto mb-8 bg-gray-50 p-5 rounded-2xl border border-gray-100">
+                                            <div className="flex items-center gap-3 transition-opacity duration-500" style={{opacity: successCheck >= 1 ? 1 : 0.3}}>
+                                                <div className={`w-6 h-6 rounded-full flex items-center justify-center shadow-sm shrink-0 transition-colors duration-500 ${successCheck >= 1 ? 'bg-green-500' : 'bg-gray-300'}`}>
+                                                    <svg className={`w-3 h-3 text-white transition-opacity duration-300 ${successCheck >= 1 ? 'opacity-100 animate-bounce-in' : 'opacity-0'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={4}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                                                </div>
+                                                <span className="text-[13px] font-bold text-gray-700">Perfil localizado</span>
+                                            </div>
+                                            <div className="flex items-center gap-3 transition-opacity duration-500" style={{opacity: successCheck >= 2 ? 1 : 0.3}}>
+                                                <div className={`w-6 h-6 rounded-full flex items-center justify-center shadow-sm shrink-0 transition-colors duration-500 ${successCheck >= 2 ? 'bg-green-500' : 'bg-gray-300'}`}>
+                                                    <svg className={`w-3 h-3 text-white transition-opacity duration-300 ${successCheck >= 2 ? 'opacity-100 animate-bounce-in' : 'opacity-0'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={4}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                                                </div>
+                                                <span className="text-[13px] font-bold text-gray-700">Entregador ativo</span>
+                                            </div>
+                                            <div className="flex items-center gap-3 transition-opacity duration-500" style={{opacity: successCheck >= 3 ? 1 : 0.3}}>
+                                                <div className={`w-6 h-6 rounded-full flex items-center justify-center shadow-sm shrink-0 transition-colors duration-500 ${successCheck >= 3 ? 'bg-green-500' : 'bg-gray-300'}`}>
+                                                    <svg className={`w-3 h-3 text-white transition-opacity duration-300 ${successCheck >= 3 ? 'opacity-100 animate-bounce-in' : 'opacity-0'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={4}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                                                </div>
+                                                <span className="text-[13px] font-bold text-gray-700">Elegível para consulta</span>
+                                            </div>
+                                        </div>
+
+                                        <div className={`transition-opacity duration-1000 ${successCheck >= 3 ? 'opacity-100' : 'opacity-0'}`}>
+                                            <p className="text-[14px] text-gray-600 font-medium leading-relaxed mb-8 px-2">
+                                                Seu perfil foi verificado com sucesso.<br/><br/>
+                                                Agora você pode consultar o resultado do sorteio desta rodada.
+                                            </p>
+
+                                            <button onClick={() => { playSound('click'); setBloco(6); window.scrollTo(0,0); }} className="w-full bg-[#EA1D2C] hover:bg-red-700 text-white font-black py-4 rounded-xl shadow-[0_8px_20px_rgba(234,29,44,0.3)] uppercase tracking-wide active:scale-95 transition-transform text-[15px]">
+                                                VER RESULTADO DO SORTEIO
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* BLOCO 6 - RESULTADO DO SORTEIO E CHANCE EXTRA (COM EFEITO SUSPENSE) */}
+                                {bloco === 6 && (
+                                    <div className="pt-2 animate-fade-in flex flex-col items-center">
+                                        {loadingSorteio ? (
+                                            <div className="text-center py-10 animate-fade-in flex flex-col items-center w-full">
+                                                <div className="w-20 h-20 border-4 border-gray-100 border-t-[#EA1D2C] rounded-full animate-spin mb-6"></div>
+                                                <h2 className="text-xl font-black text-gray-900 uppercase tracking-tight mb-2">Apurando Resultado...</h2>
+                                                <p className="text-gray-500 font-medium text-[14px]">Consultando a base de dados do sorteio principal.</p>
+                                            </div>
+                                        ) : (
+                                            <div className="w-full flex flex-col items-center">
+                                                <div className="text-center mb-8 animate-bounce-in w-full">
+                                                    <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-gray-200">
+                                                        <svg className="w-10 h-10 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                                                    </div>
+                                                    <h2 className="text-2xl font-black text-gray-900 uppercase tracking-tight mb-3">NÃO FOI DESSA VEZ</h2>
+                                                    <p className="text-gray-600 font-medium text-[15px] px-4 leading-relaxed">
+                                                        Nesta rodada você não foi contemplado no sorteio principal.
+                                                    </p>
+                                                </div>
+
+                                                {showChance && (
+                                                    <div className="bg-white border-2 border-[#EA1D2C] rounded-[24px] p-6 text-center shadow-[0_15px_40px_rgba(234,29,44,0.15)] animate-bounce-in relative overflow-hidden w-full">
+                                                        <div className="absolute top-0 left-0 w-full h-2 bg-[#EA1D2C]"></div>
+                                                        
+                                                        <div className="flex items-center justify-center mx-auto mb-4 mt-2 drop-shadow-md">
+                                                            <img src="https://i.imgur.com/EJ7b11E.png" alt="Recompensa Liberada" className="h-20 w-auto object-contain" />
+                                                        </div>
+
+                                                        <span className="inline-block bg-red-100 text-red-700 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest mb-3">RECOMPENSA EXCLUSIVA!</span>
+                                                        <h2 className="text-[20px] font-black text-gray-900 mb-3 leading-tight tracking-tight">SEU CORRE RENDEU! VOCÊ FOI PREMIADO!</h2>
+                                                        <p className="text-gray-600 font-medium text-[13px] leading-relaxed mb-8">
+                                                            Fala, parceiro! O sistema reconheceu que você tá no corre todo dia e liberou o seu acesso aos prêmios e descontos pesados pros seus equipamentos. Bora conferir o que tem pra você!
+                                                        </p>
+                                                        <button onClick={() => { playSound('click'); onComplete(); }} className="w-full bg-[#EA1D2C] hover:bg-red-700 text-white font-black py-4 rounded-xl shadow-[0_8px_20px_rgba(234,29,44,0.3)] uppercase tracking-wide animate-pulse hover:animate-none active:scale-95 transition-transform text-[15px]">
+                                                            RECEBER PRÊMIO
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                </div>
+            );
+        };
+
+        const NotificationToast = () => {
+            const [notif, setNotif] = React.useState(null);
+            const [visible, setVisible] = React.useState(false);
+
+            React.useEffect(() => {
+                const trigger = () => {
+                    const name = NOTIF_NAMES[Math.floor(Math.random() * NOTIF_NAMES.length)];
+                    const initial = NOTIF_INITIALS[Math.floor(Math.random() * NOTIF_INITIALS.length)];
+                    const action = NOTIF_ACTIONS[Math.floor(Math.random() * NOTIF_ACTIONS.length)];
+                    
+                    setNotif({ name: `${name} ${initial}`, text: action });
+                    setVisible(true);
+                    setTimeout(() => setVisible(false), 4500);
+                };
+                const interval = setInterval(trigger, 16000);
+                setTimeout(trigger, 4000);
+                return () => clearInterval(interval);
+            }, []);
+
+            if (!visible || !notif) return null;
+
+            return (
+                <div className="fixed top-20 left-1/2 transform -translate-x-1/2 bg-gray-900/95 text-white px-4 py-3 rounded-2xl text-[11px] shadow-2xl z-50 flex items-center gap-3 animate-fade-in max-w-[90vw] w-max border border-gray-700">
+                    <div className="w-6 h-6 bg-green-500/20 rounded-full flex items-center justify-center shrink-0">
+                        <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                    </div>
+                    <span className="font-medium text-gray-200">
+                        <b className="text-green-400 font-black tracking-wide">{notif.name}</b> {notif.text}
+                    </span>
+                </div>
+            );
+        };
+
+        const Navbar = ({ url }) => (
+            <div className="bg-white px-3 py-2 shadow-sm sticky top-0 z-50 border-b border-gray-100 flex justify-center">
+                <img src={url} alt="iFood para Entregadores" className="h-10 object-contain" />
+            </div>
+        );
+
+        const Wheel = ({ onFinish }) => {
+            const [spinning, setSpinning] = React.useState(false);
+            const [rotation, setRotation] = React.useState(0);
+
+            const spin = () => {
+                if (spinning) return;
+                setSpinning(true);
+                playSound('spin');
+                
+                const winIndex = Math.floor(Math.random() * PRIZES.length); 
+                const prize = PRIZES[winIndex];
+                
+                const spins = 5;
+                const segmentAngle = 360 / PRIZES.length;
+                const offset = Math.floor(Math.random() * (segmentAngle - 10)) - (segmentAngle / 2) + 5;
+                const targetRotation = rotation + (spins * 360) + (360 - (winIndex * segmentAngle)) - (rotation % 360) + offset;
+                
+                setRotation(targetRotation);
+                setTimeout(() => { setSpinning(false); playSound('win'); onFinish(prize); }, 4000);
+            };
+
+            return (
+                <div className="flex flex-col min-h-[calc(100vh-56px)] bg-[#f8f9fa] relative overflow-hidden animate-fade-in">
+                    <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-[200%] sm:w-[150%] h-[55vh] sm:h-[60vh] bg-[#EA1D2C] rounded-b-[50%] z-0"></div>
+                    <div className="relative z-10 pt-6 px-4 flex flex-col items-center w-full">
+                        <span className="bg-black/15 px-5 py-1.5 rounded-full text-xs font-bold text-white mb-4 backdrop-blur-sm uppercase tracking-wider">Acesso Liberado</span>
+                        <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight text-center leading-tight mb-2">Você recebeu um giro!</h1>
+                        <p className="text-white/90 text-center text-sm font-medium max-w-[320px] mx-auto leading-snug">Oportunidade única de receber prêmios e descontos em equipamentos para entregadores.<br/><br/>Veja o que você ganhou!</p>
+                    </div>
+                    <div className="relative z-10 flex-1 flex flex-col items-center justify-center mt-2 mb-28 transform scale-95 sm:scale-100">
+                        <div className="w-[320px] h-[320px] rounded-full bg-[#EA1D2C] flex items-center justify-center shadow-2xl relative">
+                            <div className="w-[300px] h-[300px] rounded-full bg-white relative flex items-center justify-center shadow-inner">
+                                <div className="w-[260px] h-[260px] rounded-full overflow-hidden" style={{ transform: `rotate(${rotation}deg)`, transition: 'transform 4s cubic-bezier(0.15, 0.85, 0.35, 1)' }}>
+                                    <svg width="100%" height="100%" viewBox="0 0 260 260">
+                                        {PRIZES.map((prize, i) => {
+                                            const angle = 60;
+                                            const startAngle = i * angle;
+                                            const endAngle = (i + 1) * angle;
+                                            const radius = 130;
+                                            const center = 130;
+                                            const x1 = center + radius * Math.cos((startAngle - 90) * Math.PI / 180);
+                                            const y1 = center + radius * Math.sin((startAngle - 90) * Math.PI / 180);
+                                            const x2 = center + radius * Math.cos((endAngle - 90) * Math.PI / 180);
+                                            const y2 = center + radius * Math.sin((endAngle - 90) * Math.PI / 180);
+                                            return (
+                                                <g key={i}>
+                                                    <path d={`M ${center} ${center} L ${x1} ${y1} A ${radius} ${radius} 0 0 1 ${x2} ${y2} Z`} fill={prize.color} stroke="#ffffff" strokeWidth="2" />
+                                                    <text x={center + 85 * Math.cos((startAngle + 30 - 90) * Math.PI / 180)} y={center + 85 * Math.sin((startAngle + 30 - 90) * Math.PI / 180)} fill="white" fontSize="42" fontWeight="900" textAnchor="middle" dominantBaseline="middle" transform={`rotate(${startAngle + 30}, ${center + 85 * Math.cos((startAngle + 30 - 90) * Math.PI / 180)}, ${center + 85 * Math.sin((startAngle + 30 - 90) * Math.PI / 180)})`}>?</text>
+                                                </g>
+                                            );
+                                        })}
+                                    </svg>
+                                </div>
+                                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20 flex flex-col items-center">
+                                    <div className="w-0 h-0 border-l-[10px] border-r-[10px] border-b-[16px] border-transparent border-b-[#EA1D2C] -mb-[4px] relative z-10 drop-shadow-md"></div>
+                                    {/* Imagem no centro da roleta */}
+                                    <div className="w-16 h-16 bg-white rounded-full shadow-lg flex flex-col items-center justify-center border-[3px] border-white relative z-20 overflow-hidden">
+                                        <img src="https://i.imgur.com/nrAREQj.png" className="w-full h-full object-cover" alt="Centro" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="fixed bottom-0 left-0 w-full bg-white z-20 rounded-t-[30px] shadow-[0_-10px_25px_rgba(0,0,0,0.05)] pt-6 pb-8 px-4 border-t border-gray-100">
+                        <button onClick={spin} disabled={spinning} className={`w-full text-white font-bold text-lg py-4 rounded-xl shadow-lg transition-transform active:scale-95 uppercase tracking-wide ${spinning ? 'bg-gray-400' : 'bg-[#EA1D2C]'}`}>
+                            {spinning ? 'PROCESSANDO...' : 'RECEBER PRÊMIO'}
+                        </button>
+                    </div>
+                </div>
+            );
+        };
+
+        const BannerCarousel = () => {
+            const [currentIndex, setCurrentIndex] = React.useState(0);
+            React.useEffect(() => {
+                const interval = setInterval(() => { setCurrentIndex((prev) => (prev + 1) % STORE_BANNERS.length); }, 4000);
+                return () => clearInterval(interval);
+            }, []);
+            return (
+                <div className="relative w-full rounded-xl overflow-hidden mb-4 shadow-md bg-transparent flex items-center justify-center">
+                    <img src={STORE_BANNERS[0]} className="w-full h-auto opacity-0 block pointer-events-none" alt="spacer" />
+                    {STORE_BANNERS.map((banner, index) => (
+                        <img key={index} src={banner} alt="banner" className={`absolute top-0 left-0 w-full h-full object-contain transition-opacity duration-700 ease-in-out ${index === currentIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'}`} />
+                    ))}
+                    <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1.5 z-20">
+                        {STORE_BANNERS.map((_, index) => <div key={index} className={`h-1.5 rounded-full transition-all duration-300 ${index === currentIndex ? 'w-4 bg-white' : 'w-1.5 bg-white/50'}`}></div>)}
+                    </div>
+                </div>
+            );
+        };
+
+        const FAQAccordion = () => {
+            const [openIdx, setOpenIdx] = React.useState(null);
+            return (
+                <div className="mt-6 mb-4 text-left">
+                    <h3 className="font-black text-gray-800 uppercase mb-3 tracking-wide text-xs flex items-center gap-2">
+                        <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        Dúvidas Frequentes
+                    </h3>
+                    <div className="space-y-2">
+                        {FAQS.map((faq, i) => (
+                            <div key={i} className="bg-white border border-gray-100 rounded-xl overflow-hidden shadow-sm">
+                                <button onClick={() => setOpenIdx(openIdx === i ? null : i)} className="w-full p-4 text-left font-bold text-gray-700 text-[11px] flex justify-between items-center transition-colors">
+                                    {faq.q}
+                                    <svg className={`w-4 h-4 text-gray-400 transition-transform ${openIdx === i ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                                </button>
+                                {openIdx === i && <div className="p-4 pt-0 text-[11px] text-gray-500 leading-relaxed bg-white border-t border-gray-50">{faq.a}</div>}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        };
+
+        const Reviews = ({ productId }) => {
+            const reviews = REVIEWS_BY_PRODUCT_ID[productId] || []; 
+            if (reviews.length === 0) return null;
+            return (
+                <div className="mt-8 border-t border-gray-100 pt-6 text-left">
+                    <h4 className="font-black text-gray-800 text-[11px] uppercase tracking-widest mb-4 flex items-center gap-2">
+                        Relatos Recentes
+                    </h4>
+                    <div className="space-y-3">
+                        {reviews.map((rev, i) => (
+                            <div key={i} className="bg-gray-50/80 p-4 rounded-xl border border-gray-100">
+                                <div className="flex justify-between items-start mb-2">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-6 h-6 bg-gray-200 rounded-full flex items-center justify-center text-[10px] font-bold text-gray-500">{rev.name.charAt(0)}</div>
+                                        <div>
+                                            <div className="text-[11px] font-bold text-gray-800 leading-none mb-1">{rev.name}</div>
+                                            <div className="text-[9px] text-gray-400 font-mono">CPF {rev.cpf}</div>
+                                        </div>
+                                    </div>
+                                    <div className="flex">{[...Array(5)].map((_, j) => <svg key={j} className="w-3 h-3 text-yellow-400 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>)}</div>
+                                </div>
+                                <p className="text-[11px] text-gray-600 leading-relaxed italic">"{rev.text}"</p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        };
+
+        const PrizeRevealModal = ({ show, prize, onRedeem }) => {
+            if (!show || !prize) return null;
+            return (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+                    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                        {[...Array(30)].map((_, i) => (
+                            <div key={i} className="confetti" style={{ left: `${Math.random() * 100}vw`, animationDuration: `${Math.random() * 2 + 2}s`, animationDelay: `${Math.random() * 2}s`, backgroundColor: ['#EA1D2C', '#F59E0B', '#10B981', '#3B82F6'][Math.floor(Math.random()*4)] }}></div>
+                        ))}
+                    </div>
+                    <div className="bg-white rounded-[24px] w-full max-w-sm p-8 text-center shadow-2xl transform transition-all animate-bounce-in relative z-10 border border-gray-100">
+                        <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 border-4 border-white shadow-lg -mt-16">
+                            <svg className="h-10 w-10 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+                        </div>
+                        <h2 className="text-2xl font-black text-gray-800 mb-2 leading-tight">Prêmio Liberado!</h2>
+                        <p className="text-gray-500 mb-6 text-xs leading-relaxed">Seu prêmio promocional já está ativo em sua conta.<br/><br/>Aproveite essa chance agora mesmo e utilize seu desconto para resgatar os melhores equipamentos para o seu dia a dia.</p>
+                        <div className="bg-gray-50 border-2 border-dashed border-[#EA1D2C] rounded-xl p-5 mb-6">
+                            <span className="block text-[10px] text-gray-400 font-bold uppercase mb-1">Desconto Ativado:</span>
+                            <span className="block text-4xl font-black text-[#EA1D2C] tracking-tighter">{prize.reveal}</span>
+                        </div>
+                        <button onClick={onRedeem} className="w-full bg-[#EA1D2C] text-white font-black py-4 rounded-xl shadow-[0_8px_20px_rgba(234,29,44,0.3)] flex items-center justify-center gap-2 transition-transform active:scale-95 uppercase tracking-wide">
+                            RECEBER PRÊMIOS
+                        </button>
+                    </div>
+                </div>
+            );
+        };
+
+        const Checkout = ({ product, discount, onBack, initialPix }) => {
+            const [step, setStep] = React.useState(initialPix ? 3 : 1);
+            const [loading, setLoading] = React.useState(false);
+            
+            // INJETA OS DADOS GUARDADOS AUTOMATICAMENTE!
+            const [formData, setFormData] = React.useState({ 
+                name: safeGetLocal('entregador_user_name') || '', 
+                cpf: safeGetLocal('entregador_user_cpf') || '', 
+                email: '', 
+                phone: safeGetLocal('entregador_user_phone') || '', 
+                cep: '', street: '', number: '', neighborhood: '', city: '', state: '' 
+            });
+
+            const [pixData, setPixData] = React.useState(initialPix);
+            const [selectedSize, setSelectedSize] = React.useState(null);
+            const [shippingSelected, setShippingSelected] = React.useState(false);
+            const [sizeError, setSizeError] = React.useState(false);
+            const [cpfError, setCpfError] = React.useState(false);
+            const [timeLeft, setTimeLeft] = React.useState(600);
+            const numRef = React.useRef(null);
+            
+            const shippingCostValue = 14.98;
+            const actualDiscount = product.fixedDiscount !== undefined ? product.fixedDiscount : discount;
+            const productPrice = parseFloat(calculatePrice(product.originalPrice, actualDiscount));
+            const totalAmount = productPrice + (shippingSelected ? shippingCostValue : 0);
+
+            React.useEffect(() => {
+                let timer;
+                if (pixData) {
+                    timer = setInterval(() => {
+                        setTimeLeft(prev => prev <= 1 ? 600 : prev - 1);
+                    }, 1000);
+                }
+                return () => clearInterval(timer);
+            }, [pixData]);
+
+            React.useEffect(() => {
+                if (step === 3 && formData.street && numRef.current) {
+                    setTimeout(() => numRef.current.focus(), 300);
+                }
+            }, [step, formData.street]);
+
+            const handleCepChange = async (e) => {
+                const val = e.target.value;
+                const cepInput = val.replace(/\D/g, '');
+                let formattedCep = cepInput;
+                if (cepInput.length > 5) formattedCep = cepInput.replace(/^(\d{5})(\d)/, '$1-$2');
+
+                setFormData(prev => ({ ...prev, cep: formattedCep }));
+                
+                if (cepInput.length === 8) {
+                    try {
+                        const res = await fetch(`https://viacep.com.br/ws/${cepInput}/json/`);
+                        const data = await res.json();
+                        if (!data.erro) {
+                            setFormData(prev => ({ ...prev, street: data.logradouro, neighborhood: data.bairro, city: data.localidade, state: data.uf, cep: formattedCep }));
+                            if (step === 3 && numRef.current) {
+                                setTimeout(() => numRef.current.focus(), 100);
+                            }
+                        }
+                    } catch (err) {}
+                } else if (cepInput.length < 8 && formData.street) {
+                    setFormData(prev => ({ ...prev, street: '', neighborhood: '', city: '', state: '' }));
+                    setShippingSelected(false);
+                }
+            };
+
+            const generatePix = async (e) => {
+                e.preventDefault();
+                if (!shippingSelected) { alert("Por favor, selecione a transportadora para continuar."); return; }
+                playSound('click');
+                setLoading(true);
+                
+                const valorEmCentavos = Math.round(totalAmount * 100);
+
+                try {
+                    const BACKEND_URL = '/api/gerar-pix';
+
+                    const response = await fetch(BACKEND_URL, {
+                        method: 'POST',
+                        mode: 'cors',
+                        headers: { 
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json' 
+                        },
+                        body: JSON.stringify({
+                            amount: valorEmCentavos,
+                            description: product.name,
+                            customer: {
+                                name: formData.name,
+                                email: formData.email,
+                                phone: formData.phone.replace(/\D/g, ''),
+                                document: formData.cpf.replace(/\D/g, '')
+                            }
+                        })
+                    });
+
+                    const textData = await response.text();
+                    let data;
+                    try { data = JSON.parse(textData); } catch(e) { data = { error: textData }; }
+
+                    if (response.ok && data && data.qr_code) {
+                        setPixData(data);
+                        safeSetLocal('entregador_active_pix', data);
+                        safeSetLocal('entregador_selected_product', product);
+                        window.scrollTo(0,0);
+                    } else {
+                        console.error("Resposta do Servidor:", data);
+                        alert(`Erro da Operadora: ${data.error || 'Falha desconhecida'}\n\nDetalhes: Verifique se usou um CPF real e se as chaves estão corretas na Vercel.`);
+                    }
+                } catch (err) { 
+                    console.error("Erro de conexão no generatePix:", err);
+                    alert("Aviso: Ocorreu um erro de comunicação com o servidor (/api não encontrada). Verifique se a pasta 'api' existe no GitHub."); 
+                } finally { 
+                    setLoading(false); 
+                }
+            };
+
+            if (pixData) {
+                const mins = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+                const secs = (timeLeft % 60).toString().padStart(2, '0');
+
+                return (
+                    <div className="min-h-screen bg-gray-50 pb-20 pt-4 px-4 animate-bounce-in text-center flex flex-col items-center">
+                        <h2 className="text-xl font-black text-gray-800 mb-1 mt-6 uppercase">Aguardando Pagamento</h2>
+                        <p className="text-xs text-gray-500 mb-4 px-4">Copie o código PIX abaixo e pague no app do seu banco para liberar o envio.</p>
+                        
+                        <div className="bg-white rounded-[24px] shadow-lg p-6 max-w-sm w-full mx-auto relative overflow-hidden border border-gray-100">
+                            
+                            <div className="bg-red-50 text-[#EA1D2C] font-black text-[11px] py-2 px-4 rounded-xl mb-6 inline-flex items-center gap-2 border border-red-100">
+                                <svg className="w-4 h-4 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                O CÓDIGO EXPIRA EM {mins}:{secs}
+                            </div>
+
+                            <div className="mb-6 p-4 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
+                                <img src={`https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(pixData.qr_code)}`} alt="QR Code" className="mx-auto mix-blend-multiply" />
+                            </div>
+                            
+                            <button onClick={() => { playSound('click'); navigator.clipboard.writeText(pixData.qr_code); alert("PIX Copiado com sucesso!"); }} className="w-full bg-[#10B981] active:bg-green-700 text-white font-black py-4 rounded-xl shadow-lg mb-4 transition-transform active:scale-95 uppercase tracking-widest text-[11px]">COPIAR CÓDIGO PIX</button>
+                            
+                            <div className="pt-4 border-t border-gray-100 mt-2">
+                                <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest">Processado com segurança por Paradise Pags</p>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="min-h-screen bg-gray-50 pb-20 animate-fade-in">
+                    <div className="bg-white shadow-sm sticky top-0 z-30">
+                        <div className="p-4 flex items-center gap-3">
+                            <button onClick={step === 1 ? () => { playSound('click'); onBack(); } : () => { playSound('click'); setStep(step - 1); }}>
+                                <svg className="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+                            </button>
+                            <h2 className="font-black text-lg text-gray-800 tracking-tight">Resgatar Prêmio</h2>
+                        </div>
+                        <div className="px-6 pb-4 flex gap-2">
+                            <div className={`step-pill ${step >= 1 ? 'bg-[#EA1D2C]' : 'bg-gray-200'}`}></div>
+                            <div className={`step-pill ${step >= 2 ? 'bg-[#EA1D2C]' : 'bg-gray-200'}`}></div>
+                            <div className={`step-pill ${step >= 3 ? 'bg-[#EA1D2C]' : 'bg-gray-200'}`}></div>
+                        </div>
+                    </div>
+
+                    <div className="container mx-auto px-4 pt-4 max-w-md">
+                        {step === 1 && (
+                            <div className="space-y-6 animate-bounce-in">
+                                <div className="bg-white rounded-[24px] shadow-sm p-6 text-center border border-gray-100">
+                                    <div className="bg-gray-50 rounded-2xl p-4 mb-5 border border-gray-100">
+                                        <img src={product.image} className="w-48 mx-auto h-48 object-contain mix-blend-multiply" />
+                                    </div>
+                                    <h3 className="font-black text-gray-800 mb-2 leading-tight uppercase">{product.name}</h3>
+                                    <div className="text-[#EA1D2C] font-black text-3xl mb-6 tracking-tighter">R$ {productPrice.toFixed(2).replace('.', ',')}</div>
+                                    
+                                    {product.sizes && (
+                                        <div className={`mb-6 p-4 rounded-2xl transition-all text-left ${sizeError ? 'border-2 border-[#EA1D2C] bg-red-50/50' : 'border-2 border-transparent'}`}>
+                                            <p className={`text-[10px] font-black uppercase mb-3 ${sizeError ? 'text-[#EA1D2C]' : 'text-gray-400'}`}>
+                                                {sizeError ? '⚠️ Obrigatório escolher tamanho:' : 'Selecione o Tamanho:'}
+                                            </p>
+                                            <div className="flex flex-wrap gap-2">
+                                                {product.sizes.map(size => (
+                                                    <button key={size} onClick={() => { playSound('click'); setSelectedSize(size); setSizeError(false); }} className={`w-12 h-12 flex items-center justify-center text-sm font-black rounded-xl border-2 transition-all ${selectedSize === size ? 'bg-[#EA1D2C] text-white border-[#EA1D2C] shadow-md scale-105' : (sizeError ? 'bg-white border-red-200 text-red-500' : 'bg-white border-gray-200 text-gray-500 hover:border-gray-300')}`}>{size}</button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    <button onClick={() => { 
+                                        playSound('click'); 
+                                        if (product.sizes && !selectedSize) { setSizeError(true); return; }
+                                        setStep(2); window.scrollTo(0,0);
+                                    }} className="w-full bg-[#EA1D2C] text-white font-black py-4 rounded-xl shadow-[0_8px_20px_rgba(234,29,44,0.3)] uppercase tracking-wide">AVANÇAR</button>
+                                    
+                                    <Reviews productId={product.id} />
+                                </div>
+                            </div>
+                        )}
+
+                        {step === 2 && (
+                            <form onSubmit={(e) => { 
+                                e.preventDefault(); 
+                                if (!validarCPF(formData.cpf)) {
+                                    setCpfError(true);
+                                    alert("CPF Inválido! Por favor, verifique o número digitado para prosseguir.");
+                                    return;
+                                }
+                                playSound('click'); 
+                                setStep(3); 
+                                window.scrollTo(0,0); 
+                            }} className="bg-white p-6 rounded-[24px] shadow-sm space-y-4 border border-gray-100 animate-fade-in">
+                                <div><label className="text-[10px] font-black text-gray-400 uppercase ml-1">Nome Completo</label><input required type="text" className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:border-[#EA1D2C] font-medium mt-1" placeholder="Ex: José da Silva" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} /></div>
+                                
+                                <div>
+                                    <label className="text-[10px] font-black text-gray-400 uppercase ml-1">CPF</label>
+                                    <input required type="tel" className={`w-full bg-gray-50 border ${cpfError ? 'border-red-500 text-red-600 bg-red-50/50' : 'border-gray-200'} rounded-xl p-3 text-sm focus:outline-none focus:border-[#EA1D2C] font-medium mt-1 transition-colors`} placeholder="000.000.000-00" value={formData.cpf} onChange={e => { setFormData({...formData, cpf: e.target.value}); setCpfError(false); }} />
+                                    {cpfError && <p className="text-red-500 text-[10px] font-bold mt-1 ml-1 animate-fade-in">⚠️ Preencha um CPF válido</p>}
+                                </div>
+
+                                <div><label className="text-[10px] font-black text-gray-400 uppercase ml-1">E-mail</label><input required type="email" className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:border-[#EA1D2C] font-medium mt-1" placeholder="seu@email.com" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} /></div>
+                                <div><label className="text-[10px] font-black text-gray-400 uppercase ml-1">Celular / WhatsApp</label><input required type="tel" className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:border-[#EA1D2C] font-medium mt-1" placeholder="(00) 00000-0000" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} /></div>
+                                <button type="submit" className="w-full bg-[#EA1D2C] text-white font-black py-4 rounded-xl shadow-[0_8px_20px_rgba(234,29,44,0.3)] mt-4 uppercase tracking-wide">CONTINUAR PARA ENDEREÇO</button>
+                            </form>
+                        )}
+
+                        {step === 3 && (
+                            <form onSubmit={generatePix} className="bg-white p-6 rounded-[24px] shadow-sm border border-gray-100 space-y-4 animate-fade-in">
+                                <div className="space-y-3">
+                                    <div><label className="text-[10px] font-black text-gray-400 uppercase ml-1">CEP (Busca automática)</label><input required className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm font-black focus:outline-none focus:border-[#EA1D2C] mt-1 text-gray-700" placeholder="00000-000" value={formData.cep} onChange={handleCepChange} /></div>
+                                    <div className="flex gap-2">
+                                        <div className="w-3/4"><label className="text-[10px] font-black text-gray-300 uppercase ml-1">Endereço</label><input required className="w-full bg-gray-100 border-none rounded-xl p-3 text-[11px] font-medium text-gray-500 mt-1" value={formData.street} readOnly /></div>
+                                        <div className="w-1/4"><label className="text-[10px] font-black text-[#EA1D2C] uppercase text-center block">Nº</label><input ref={numRef} required className="w-full bg-gray-50 border-2 border-red-100 rounded-xl p-3 text-sm font-black focus:outline-none focus:border-[#EA1D2C] text-center mt-1" placeholder="123" onChange={e => setFormData({...formData, number: e.target.value})} /></div>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <div className="w-1/2"><label className="text-[10px] font-black text-gray-300 uppercase ml-1">Bairro</label><input required className="w-full bg-gray-100 border-none rounded-xl p-3 text-[11px] font-medium text-gray-500 mt-1" value={formData.neighborhood} readOnly /></div>
+                                        <div className="w-1/2"><label className="text-[10px] font-black text-gray-300 uppercase ml-1">Cidade</label><input required className="w-full bg-gray-100 border-none rounded-xl p-3 text-[11px] font-medium text-gray-500 mt-1" value={formData.city} readOnly /></div>
+                                    </div>
+                                </div>
+
+                                <div className="pt-4 border-t border-gray-100">
+                                    <label className="block text-[10px] font-black text-gray-400 uppercase mb-3 ml-1">Transportadora Oficial</label>
+                                    <div onClick={() => { playSound('click'); setShippingSelected(!shippingSelected); }} className={`shipping-card p-4 rounded-xl flex items-center gap-4 ${shippingSelected ? 'active' : 'bg-gray-50'}`}>
+                                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${shippingSelected ? 'bg-[#EA1D2C] border-[#EA1D2C]' : 'border-gray-300'}`}>
+                                            {shippingSelected && <svg className="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>}
+                                        </div>
+                                        <div className="flex-1 text-left">
+                                            <h4 className="text-xs font-black text-gray-800 leading-none mb-1 uppercase">Entrega Loggi</h4>
+                                            <p className="text-[9px] text-gray-500 font-bold tracking-widest uppercase">3 a 5 dias</p>
+                                        </div>
+                                        <div className="text-right">
+                                            <span className="text-sm font-black text-[#EA1D2C]">R$ 14,98</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="bg-gray-50 p-5 rounded-xl border border-gray-100 mt-4 space-y-2">
+                                    <div className="flex justify-between text-[11px] text-gray-500 font-medium"><span>Custo do Equipamento</span><span className="line-through">R$ {product.originalPrice.toFixed(2)}</span></div>
+                                    <div className="flex justify-between text-[11px] text-gray-500 font-bold"><span>Condição Promocional</span><span className="text-green-500">-R$ {(product.originalPrice - productPrice).toFixed(2).replace('.', ',')}</span></div>
+                                    <div className="flex justify-between text-[11px] text-gray-500 font-medium border-b border-gray-200 pb-2"><span>Taxa Logística</span><span>{shippingSelected ? 'R$ 14,98' : 'Pendente'}</span></div>
+                                    <div className="flex justify-between text-sm font-black text-gray-800 pt-1 items-center uppercase"><span className="text-[10px]">Total a Pagar</span><span className="text-[#EA1D2C] text-lg tracking-tighter">R$ {totalAmount.toFixed(2).replace('.', ',')}</span></div>
+                                </div>
+                                <button type="submit" disabled={loading} className="w-full bg-green-600 hover:bg-green-700 text-white font-black py-4 rounded-xl shadow-[0_8px_20px_rgba(22,163,74,0.3)] flex items-center justify-center gap-2 uppercase tracking-wide active:scale-95 transition-all mt-2">
+                                    {loading ? <div className="spinner"></div> : "FINALIZAR RESGATE"}
+                                </button>
+                                <p className="text-center text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-4">Pagamento Seguro e Processado com Criptografia</p>
+                            </form>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        const Store = ({ discount, onSelectProduct }) => {
+            const [activeCategory, setActiveCategory] = React.useState('home');
+            const [userName] = React.useState(() => safeGetLocal('entregador_user_name') || 'Entregador Parceiro');
+            
+            let filteredProducts = [];
+            if (activeCategory === 'home') {
+                // IDs estrategicamente escolhidos (2 de cada categoria). O ID 13 é o de "Últimas unidades".
+                const destaqueIds = [13, 14, 7, 8, 1, 2, 18, 9, 24, 22];
+                filteredProducts = destaqueIds.map(id => PRODUCTS.find(p => p.id === id)).filter(Boolean);
+            } else if (activeCategory === 'all') {
+                filteredProducts = PRODUCTS;
+            } else {
+                filteredProducts = PRODUCTS.filter(p => p.category === activeCategory);
+            }
+
+            return (
+                <div className="pb-20 animate-fade-in bg-gray-50 min-h-screen relative">
+
+                    {/* PERFIL DO MOTOBOY NA LOJA - SEM ESTAR FIXO E COM DIVISÓRIA CLARA */}
+                    <div className="bg-white px-5 py-4 border-y border-gray-200 flex items-center gap-4 shadow-sm mb-4 mt-2">
+                        <div className="w-12 h-12 rounded-full bg-gray-100 border-2 border-[#EA1D2C] flex items-center justify-center overflow-hidden shrink-0 shadow-sm">
+                            <img src="https://i.imgur.com/tHulsoM.png" alt="Perfil do Entregador" className="w-full h-full object-cover" />
+                        </div>
+                        <div className="flex-1 overflow-hidden">
+                            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-0.5">Acesso Verificado</p>
+                            <p className="text-[15px] font-black text-gray-800 leading-tight truncate">Olá, {userName}</p>
+                        </div>
+                        <div className="w-8 h-8 bg-green-50 rounded-full flex items-center justify-center border border-green-200 shrink-0">
+                            <svg className="w-4 h-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                        </div>
+                    </div>
+
+                    <div className="container mx-auto px-4 pt-2 text-center">
+                        <BannerCarousel />
+
+                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-6 mt-6 text-left">
+                            <h2 className="text-lg font-black text-gray-800 mb-3 leading-tight uppercase">Equipamentos certos para quem vive de entrega</h2>
+                            <p className="text-sm text-gray-600 leading-relaxed font-medium">
+                                Aqui você encontra equipamentos voltados para quem trabalha com entregas urbanas pela plataforma do iFood, com condição promocional liberada para você que é entregador(a).<br/><br/>
+                                <strong className="text-gray-800">Todos os produtos disponíveis abaixo já estão com o desconto aplicado.</strong>
+                            </p>
+                        </div>
+
+                        <div className="flex gap-4 overflow-x-auto pb-4 mb-2 mt-6 hide-scrollbar">
+                            {CATEGORIES.map(cat => (
+                                <button key={cat.id} onClick={() => { playSound('click'); setActiveCategory(cat.id); }} className={`flex flex-col items-center min-w-[64px] gap-1.5 transition-all ${activeCategory === cat.id ? 'scale-105 opacity-100' : 'opacity-60 grayscale'}`}>
+                                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center border-2 shadow-sm ${activeCategory === cat.id ? 'bg-[#EA1D2C] border-[#EA1D2C] text-white shadow-red-500/20' : 'bg-white border-gray-200 text-gray-500'}`}>
+                                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{cat.icon}</svg>
+                                    </div>
+                                    <span className={`text-[9px] font-black uppercase tracking-wider ${activeCategory === cat.id ? 'text-[#EA1D2C]' : 'text-gray-600'}`}>{cat.label}</span>
+                                </button>
+                            ))}
+                        </div>
+
+                        <div className="flex items-center justify-between mb-4 mt-6">
+                            <h2 className="text-sm font-black text-gray-800 uppercase tracking-widest flex items-center gap-2">
+                                <span className="w-1.5 h-4 bg-[#EA1D2C] rounded-full"></span>
+                                {activeCategory === 'home' ? 'Itens em Destaque' : 'Catálogo'}
+                            </h2>
+                            {activeCategory === 'home' && (
+                                <span onClick={() => { playSound('click'); setActiveCategory('all'); }} className="text-[10px] text-[#EA1D2C] font-black uppercase tracking-widest flex items-center cursor-pointer">
+                                    Ver tudo<svg className="h-3 w-3 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" /></svg>
+                                </span>
+                            )}
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3 pb-8">
+                            {filteredProducts.map(product => {
+                                const actualDiscount = product.fixedDiscount !== undefined ? product.fixedDiscount : discount;
+                                const price = calculatePrice(product.originalPrice, actualDiscount);
+                                const [int, dec] = price.split('.');
+
+                                return (
+                                    <div key={product.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col active:scale-95 transition-transform text-left">
+                                        <div 
+                                            className={`relative aspect-square bg-white p-3 flex items-center justify-center ${product.stockLeft > 0 ? 'cursor-pointer' : ''}`}
+                                            onClick={() => { 
+                                                if (product.stockLeft > 0) { 
+                                                    playSound('click'); 
+                                                    onSelectProduct(product); 
+                                                } 
+                                            }}
+                                        >
+                                            <img src={product.image} className={`max-w-full max-h-full object-contain mix-blend-multiply ${product.stockLeft === 0 ? 'opacity-40 grayscale' : ''}`} />
+                                            {product.stockLeft > 0 && <div className="absolute top-2 right-2 bg-[#EA1D2C] text-white text-[9px] font-black px-2 py-1 rounded-md shadow-sm">-{Math.floor(actualDiscount * 100)}%</div>}
+                                            {product.stockLeft === 0 && (
+                                                <div className="absolute inset-0 flex items-center justify-center">
+                                                    <span className="bg-black/70 text-white font-black text-xs px-4 py-1.5 rounded-lg -rotate-12 border border-gray-600 backdrop-blur-sm shadow-xl uppercase tracking-widest">Esgotado</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="p-3 flex-1 flex flex-col justify-between border-t border-gray-50 bg-gray-50/30">
+                                            <div>
+                                                {product.tag && product.stockLeft > 0 && (
+                                                    <span className={`inline-block text-[8px] font-black px-1.5 py-0.5 rounded mb-1.5 uppercase tracking-widest ${product.tag === 'ÚLTIMAS UNIDADES' ? 'bg-red-100 text-[#EA1D2C]' : 'bg-gray-200 text-gray-700'}`}>
+                                                        {product.tag}
+                                                    </span>
+                                                )}
+                                                <h3 className={`text-[10px] text-gray-800 font-black uppercase tracking-tight leading-snug mb-2 line-clamp-2 h-[2.5em] ${product.stockLeft === 0 ? 'opacity-50' : ''}`}>{product.name}</h3>
+                                                <div className={`flex flex-col mb-3 mt-1 ${product.stockLeft === 0 ? 'opacity-50' : ''}`}>
+                                                    <span className="text-[9px] text-gray-400 font-bold line-through">R$ {product.originalPrice.toFixed(2).replace('.', ',')}</span>
+                                                    <div className="flex items-baseline gap-0.5 text-[#EA1D2C]">
+                                                        <span className="text-[10px] font-black">R$</span>
+                                                        <span className="text-xl font-black leading-none tracking-tighter">{int}</span>
+                                                        <span className="text-[10px] font-black">,{dec}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            {product.stockLeft > 0 ? (
+                                                <button onClick={() => { playSound('click'); onSelectProduct(product); }} className="w-full bg-[#EA1D2C] hover:bg-red-700 text-white text-[10px] font-black uppercase tracking-widest py-2.5 rounded-xl shadow-[0_4px_12px_rgba(234,29,44,0.2)] flex items-center justify-center">
+                                                    RESGATAR
+                                                </button>
+                                            ) : (
+                                                <button disabled className="w-full bg-gray-200 text-gray-400 text-[10px] font-black uppercase tracking-widest py-2.5 rounded-xl cursor-not-allowed border border-gray-300">
+                                                    INDISPONÍVEL
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+
+                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-6 mt-2 text-left">
+                             <h2 className="text-sm font-black text-gray-800 mb-3 uppercase tracking-wide flex items-center gap-2">
+                                 <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+                                 Compra segura
+                             </h2>
+                             <p className="text-[11px] text-gray-600 font-medium leading-relaxed">
+                                 Após a confirmação do pagamento, seu pedido é separado e enviado para faturamento.<br/><br/>
+                                 O envio é realizado em até 24h úteis após a confirmação.<br/><br/>
+                                 Prazo médio de entrega: 3 a 7 dias úteis, dependendo da região.<br/><br/>
+                                 Você recebe o código de acompanhamento após o envio.
+                             </p>
+                        </div>
+                        
+                        <FAQAccordion />
+
+                    </div>
+                </div>
+            );
+        };
+
+        const App = () => {
+            const [view, setView] = React.useState(() => {
+                if (safeGetLocal('entregador_active_pix')) return 'checkout';
+                if (safeGetLocal('entregador_award_data')) return 'store';
+                return 'prequal';
+            });
+            
+            const [wonPrize, setWonPrize] = React.useState(() => safeGetLocal('entregador_award_data'));
+            const [showPrizeModal, setShowPrizeModal] = React.useState(false);
+            const [selectedProduct, setSelectedProduct] = React.useState(() => safeGetLocal('entregador_selected_product'));
+
+            React.useEffect(() => {
+                try { if (localStorage.getItem('entregador_purchase_completed')) { window.location.href = REDIRECT_URL; } } catch (e) {}
+                const loader = document.getElementById('initial-loader');
+                if (loader) loader.style.display = 'none';
+            }, []);
+
+            React.useEffect(() => {
+                if (wonPrize && (view === 'prequal' || view === 'wheel')) {
+                    setView('store');
+                }
+            }, [view, wonPrize]);
+
+            const handleWheelFinish = (prize) => {
+                setWonPrize(prize);
+                safeSetLocal('entregador_award_data', prize);
+                setTimeout(() => { setShowPrizeModal(true); }, 800);
+            };
+
+            const handleRedeem = () => {
+                setShowPrizeModal(false);
+                setView('store');
+                window.scrollTo(0,0);
+            };
+
+            const handleSelectProduct = (product) => {
+                setSelectedProduct(product);
+                setView('checkout');
+                window.scrollTo(0,0);
+            };
+
+            return (
+                <div className="min-h-screen bg-[#f8f9fa] flex flex-col font-sans">
+                    {/* Cabeçalho condicional baseado na tela atual */}
+                    {view === 'prequal' && <Navbar url="https://i.imgur.com/15stW26.png" />}
+                    {(view === 'store' || view === 'checkout') && <Navbar url="https://i.imgur.com/YqTctO3.jpeg" />}
+                    
+                    {(view === 'store' || view === 'checkout') && <NotificationToast />}
+                    
+                    <main className="flex-grow flex flex-col">
+                        {view === 'prequal' && <PreQualification onComplete={() => setView('wheel')} />}
+                        {view === 'wheel' && <Wheel onFinish={handleWheelFinish} />}
+                        {view === 'store' && <Store discount={wonPrize ? wonPrize.value : 0.70} onSelectProduct={handleSelectProduct} />}
+                        {view === 'checkout' && selectedProduct && <Checkout product={selectedProduct} discount={wonPrize ? wonPrize.value : 0.70} onBack={() => setView('store')} initialPix={safeGetLocal('entregador_active_pix')} />}
+                    </main>
+
+                    <PrizeRevealModal show={showPrizeModal} prize={wonPrize} onRedeem={handleRedeem} />
+                    
+                    {/* Rodapé aparece APENAS na loja e no checkout */}
+                    {(view === 'store' || view === 'checkout') && (
+                        <footer className="bg-white py-10 px-6 text-center mt-auto relative z-10 border-t border-gray-200">
+                            <div className="flex justify-center gap-6 mb-8">
+                                <div className="flex flex-col items-center gap-2">
+                                    <div className="w-10 h-10 rounded-full flex items-center justify-center bg-red-50 border border-red-100">
+                                        <svg className="w-5 h-5 text-[#EA1D2C]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>
+                                    </div>
+                                    <span className="text-[9px] uppercase font-black tracking-widest text-gray-600">Site Seguro</span>
+                                </div>
+                                <div className="flex flex-col items-center gap-2">
+                                    <div className="w-10 h-10 rounded-full flex items-center justify-center bg-red-50 border border-red-100">
+                                        <svg className="w-5 h-5 text-[#EA1D2C]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                                    </div>
+                                    <span className="text-[9px] uppercase font-black tracking-widest text-center leading-tight text-gray-600">Pagamento<br/>Criptografado</span>
+                                </div>
+                                <div className="flex flex-col items-center gap-2">
+                                    <div className="w-10 h-10 rounded-full flex items-center justify-center bg-red-50 border border-red-100">
+                                        <svg className="w-5 h-5 text-[#EA1D2C]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+                                    </div>
+                                    <span className="text-[9px] uppercase font-black tracking-widest text-center leading-tight text-gray-600">Compra<br/>Garantida</span>
+                                </div>
+                            </div>
+                            
+                            <div className="space-y-2 mb-6 text-left px-4 text-gray-500">
+                                <p className="text-[10px] font-bold text-gray-800">CLUBE DO ENTREGADOR BRASIL LTDA</p>
+                                <p className="text-[9px]">CNPJ: 45.123.456/0001-00</p>
+                                <p className="text-[9px]">Av. Paulista, 1000 - Bela Vista, São Paulo - SP</p>
+                            </div>
+
+                            <div className="flex justify-center gap-4 text-[9px] font-black uppercase tracking-widest mb-6 border-t pt-6 border-gray-200 text-gray-600">
+                                <a href="#" className="hover:text-[#EA1D2C]">Termos de Uso</a>
+                                <span>•</span>
+                                <a href="#" className="hover:text-[#EA1D2C]">Política de Privacidade</a>
+                            </div>
+                            <p className="text-[9px] uppercase tracking-widest font-black text-gray-400">© 2024 Portal de Incentivo. Todos os direitos reservados.</p>
+                        </footer>
+                    )}
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<ErrorBoundary><App /></ErrorBoundary>);
+    </script>
+</body>
+</html>
